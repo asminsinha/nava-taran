@@ -45,12 +45,12 @@ const TerraScan = () => {
 	useEffect(() => {
 		const fetchTelemetry = async () => {
 			try {
-				const res = await axios.get('http://localhost:5000/api/satellite-scan');
+				const res = await axios.get('/api/satellite-scan');
 				setTelemetry(res.data);
 				setError(null);
 			} catch (err) {
 				console.error("Telemetry link failed:", err);
-				setError("COMMS FAILURE: ENSURE BACKEND IS RUNNING AT PORT 5000");
+				setError("COMMS FAILURE: ENSURE BACKEND IS RUNNING WITHOUT ERROR");
 			}
 		};
 		fetchTelemetry();
@@ -257,7 +257,7 @@ function App() {
 
     useEffect(() => {
         if (view === 'space') {
-            axios.get('http://localhost:5000/api/exoplanets')
+            axios.get('/api/exoplanets')
                 .then(res => setPlanets(res.data))
                 .catch(err => console.error("Signal lost with NASA", err));
         }
@@ -275,7 +275,7 @@ function App() {
     const handleAuth = async () => {
         const endpoint = authMode === 'login' ? 'login' : 'signup';
         try {
-            const res = await axios.post(`http://localhost:5000/api/auth/${endpoint}`, formData);
+            const res = await axios.post(`/api/auth/${endpoint}`, formData);
             const userData = res.data.user;
             setUser(userData);
             sessionStorage.setItem('activeUser', JSON.stringify(userData));
@@ -298,7 +298,7 @@ function App() {
         if (!confirmation) return;
 
         try {
-            const res = await axios.delete('http://localhost:5000/api/auth/retire-profile', { 
+            const res = await axios.delete('/api/auth/retire-profile', { 
                 data: { email: user.email } 
             });
             alert(res.data.message);
@@ -335,7 +335,7 @@ const sendMessage = async () => {
 
         try {
            
-            const res = await axios.post('http://localhost:5000/api/space-chat', { 
+            const res = await axios.post('/api/space-chat', { 
                 message: userMsg.message 
             });
 
@@ -347,7 +347,7 @@ const sendMessage = async () => {
             console.error("Comm-Link Failure:", err);
             setChatHistory(prev => [...prev, { 
                 role: 'ai', 
-                message: "⚠️ *SYSTEM ALERT:* Communications with the Deep Space Network interrupted. Ensure backend is running at Port 5000." 
+                message: "⚠️ *SYSTEM ALERT:* Communications with the Deep Space Network interrupted. Ensure backend is running without error." 
             }]);
         }
     };
@@ -463,7 +463,7 @@ const sendMessage = async () => {
                     INDIAN ORBITAL ASSETS TELEMETRY
                 </h2>
                 <p style={{ color: '#888', fontSize: '0.8rem' }}>
-                    SECURE NODE: 5000 | DATA SOURCE: N2YO & NASA GIBS
+                    SECURE NODE | DATA SOURCE: N2YO & NASA GIBS
                 </p>
             </div>
 
