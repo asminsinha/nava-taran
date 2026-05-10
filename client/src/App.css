@@ -651,7 +651,7 @@ button:hover, button.active {
     width: 100vw;
     height: 100vh;
     
-    background-image: url('D:\Proud_Projects\Nava-Taran\Space background.png'); 
+    background-image: url('/Space background.png'); 
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
@@ -698,7 +698,7 @@ button:hover, button.active {
     width: 950px; 
     height: 600px;
     
-    background-image: url("D:\Proud_Projects\Nava-Taran\exoplanet.png"); 
+    background-image: url("/exoplanet.png"); 
     background-size: contain;
     background-repeat: no-repeat;
     background-position: center;

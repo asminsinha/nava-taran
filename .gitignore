@@ -5,7 +5,7 @@
 node_modules/
 backend-server/node_modules/
 
-# Ignore all environment secret files
+# Ignore environment secret files
 .env
 .env*
 
