@@ -11,16 +11,12 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// SUPABASE 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-// Use Environment Variables for these! 
-// Hardcoded keys will work but are a security risk.
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
-// AUTHENTICATION
 app.post('/api/auth/signup', async (req, res) => {
     const { name, email, phone, password } = req.body;
     try {
@@ -64,14 +60,18 @@ app.post('/api/auth/login', async (req, res) => {
 app.post('/api/space-chat', async (req, res) => {
     const { message } = req.body;
     try {
-    
         const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
+        
         const prompt = `You are the NAVA-TARAN Station AI. Provide detailed, professional, and scientific information about the cosmos. Query: ${message}`;
+        
         const result = await model.generateContent(prompt);
         const response = await result.response;
-        res.json({ response: response.text() });
+        const text = response.text();
+        
+        res.json({ response: text });
     } catch (error) {
-        res.status(500).json({ response: "Comms failure with AI Nexus." });
+        console.error("AI Error Details:", error);
+        res.status(500).json({ response: "Comms failure with AI Nexus. Ensure your API key is active and model name is correct." });
     }
 });
 
@@ -125,6 +125,5 @@ app.get('/api/satellite-scan', async (req, res) => {
     }
 });
 
-// IMPORTANT: Do NOT use app.listen()
-// Export the app for Vercel
+
 module.exports = app;

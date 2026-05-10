@@ -88,7 +88,7 @@ app.delete('/api/auth/retire-profile', async (req, res) => {
 app.post('/api/space-chat', async (req, res) => {
     const { message } = req.body;
     try {
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-pro" });
+        const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
         
         const prompt = `You are the NAVA-TARAN Station AI. Provide detailed, professional, and scientific information about the cosmos. Query: ${message}`;
         
