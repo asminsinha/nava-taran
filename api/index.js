@@ -2,8 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
 const { createClient } = require('@supabase/supabase-js');
-const dns = require('node:dns'); 
-dns.setDefaultResultOrder('ipv4first'); 
+
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 require('dotenv').config();
 
