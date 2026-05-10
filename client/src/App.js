@@ -352,12 +352,6 @@ const sendMessage = async () => {
         }
     };
 
-    const getHabitabilityInfo = (temp) => {
-        if (!temp) return { label: "Unknown", color: "#888" };
-        if (temp > 3000 && temp < 6000) return { label: "High Potential", color: "#00ff88" };
-        if (temp >= 6000) return { label: "Too Volatile", color: "#ff4b2b" };
-        return { label: "Cryogenic", color: "#00d4ff" };
-    };
 
     return (
         <div className="App">
