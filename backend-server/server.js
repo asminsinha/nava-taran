@@ -19,7 +19,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 console.log(" Global Vault Initialized (Supabase Cloud)");
 
-const genAI = new GoogleGenerativeAI("AIzaSyDMWiJFZK_8ARRfXNkufvwL9NlHsA-c57c");
+const genAI = new GoogleGenerativeAI(process.env.AI_API_KEY);
 const NASA_API_KEY = 'f0nUSEdD2HRLohxB2Onm23crGfSbkYm15KLPl4Mo'; 
 
 // AUTHENTICATION
