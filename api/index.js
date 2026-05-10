@@ -8,7 +8,6 @@ require('dotenv').config();
 
 const app = express();
 
-// Vercel handles CORS automatically if configured, but keeping this for safety
 app.use(cors());
 app.use(express.json());
 
@@ -19,7 +18,7 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 
 // Use Environment Variables for these! 
 // Hardcoded keys will work but are a security risk.
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "AIzaSyDMWiJFZK_8ARRfXNkufvwL9NlHsA-c57c");
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 // AUTHENTICATION
 app.post('/api/auth/signup', async (req, res) => {
@@ -65,8 +64,8 @@ app.post('/api/auth/login', async (req, res) => {
 app.post('/api/space-chat', async (req, res) => {
     const { message } = req.body;
     try {
-        // Changed model to 'gemini-1.5-flash' as 'gemini-3-flash-preview' may be invalid
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    
+        const model = genAI.getGenerativeModel({ model: "gemini-3-flash-preview" });
         const prompt = `You are the NAVA-TARAN Station AI. Provide detailed, professional, and scientific information about the cosmos. Query: ${message}`;
         const result = await model.generateContent(prompt);
         const response = await result.response;
@@ -97,7 +96,7 @@ app.get('/api/exoplanets', async (req, res) => {
 });
 
 app.get('/api/satellite-scan', async (req, res) => {
-    const KEY = process.env.N2YO_API_KEY || "GR6XLX-VVD74P-944NFM-5O4Z";
+    const KEY = process.env.N2YO_API_KEY;
     const satIds = [44804, 51656, 54361, 41752, 45026];
     
     try {
