@@ -1,0 +1,132 @@
+const express = require('express');
+const cors = require('cors');
+const axios = require('axios');
+const { createClient } = require('@supabase/supabase-js');
+const dns = require('node:dns'); 
+dns.setDefaultResultOrder('ipv4first'); 
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+require('dotenv').config();
+
+const app = express();
+
+// Vercel handles CORS automatically if configured, but keeping this for safety
+app.use(cors());
+app.use(express.json());
+
+// SUPABASE 
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_KEY;
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+// Use Environment Variables for these! 
+// Hardcoded keys will work but are a security risk.
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "AIzaSyDMWiJFZK_8ARRfXNkufvwL9NlHsA-c57c");
+
+// AUTHENTICATION
+app.post('/api/auth/signup', async (req, res) => {
+    const { name, email, phone, password } = req.body;
+    try {
+        const { data: existingUser } = await supabase
+            .from('pilots')
+            .select('email')
+            .eq('email', email)
+            .single();
+
+        if (existingUser) return res.status(400).json({ message: "Pilot already registered." });
+
+        const { error } = await supabase
+            .from('pilots')
+            .insert([{ name, email, phone, password, logbook: [] }]);
+
+        if (error) throw error;
+        res.status(201).json({ message: "Registration Successful", user: { name, email } });
+    } catch (error) {
+        res.status(500).json({ message: "Database Error during registration." });
+    }
+});
+
+app.post('/api/auth/login', async (req, res) => {
+    const { email, password } = req.body;
+    try {
+        const { data: user, error } = await supabase
+            .from('pilots')
+            .select('*')
+            .eq('email', email)
+            .eq('password', password)
+            .single();
+
+        if (error || !user) return res.status(401).json({ message: "Invalid credentials." });
+        const { password: _, ...userData } = user;
+        res.json({ message: "Clearance Granted", user: userData });
+    } catch (error) {
+        res.status(500).json({ message: "Login failed." });
+    }
+});
+
+app.post('/api/space-chat', async (req, res) => {
+    const { message } = req.body;
+    try {
+        // Changed model to 'gemini-1.5-flash' as 'gemini-3-flash-preview' may be invalid
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const prompt = `You are the NAVA-TARAN Station AI. Provide detailed, professional, and scientific information about the cosmos. Query: ${message}`;
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        res.json({ response: response.text() });
+    } catch (error) {
+        res.status(500).json({ response: "Comms failure with AI Nexus." });
+    }
+});
+
+app.get('/api/exoplanets', async (req, res) => {
+    try {
+        const query = `
+            SELECT TOP 50 
+            pl_name, hostname, st_teff, pl_orbper, pl_rade, pl_orbsmax, sy_dist, discoverymethod, disc_year 
+            FROM ps 
+            WHERE default_flag = 1 
+            AND pl_rade IS NOT NULL 
+            AND pl_orbsmax IS NOT NULL
+            ORDER BY sy_dist ASC
+        `.replace(/\s+/g, '+');
+
+        const url = `https://exoplanetarchive.ipac.caltech.edu/TAP/sync?query=${query}&format=json`;
+        const response = await axios.get(url);
+        res.json(response.data);
+    } catch (error) {
+        res.status(500).json({ message: "Deep Space Uplink Failure" });
+    }
+});
+
+app.get('/api/satellite-scan', async (req, res) => {
+    const KEY = process.env.N2YO_API_KEY || "GR6XLX-VVD74P-944NFM-5O4Z";
+    const satIds = [44804, 51656, 54361, 41752, 45026];
+    
+    try {
+        const missionData = [];
+        for (const id of satIds) {
+            try {
+                const url = `https://api.n2yo.com/rest/v1/satellite/positions/${id}/20.59/78.96/0/1/&apiKey=${KEY}`;
+                const r = await axios.get(url);
+                if (r.data && r.data.positions) {
+                    const pos = r.data.positions[0];
+                    missionData.push({
+                        name: r.data.info.satname,
+                        id: r.data.info.satid,
+                        lat: pos.satlatitude,
+                        lng: pos.satlongitude,
+                        alt: pos.sataltitude,
+                        azimuth: pos.azimuth,
+                        elevation: pos.elevation
+                    });
+                }
+            } catch (e) { console.warn(e.message); }
+        }
+        res.json(missionData);
+    } catch (error) {
+        res.status(500).json({ error: "Uplink to N2YO lost." });
+    }
+});
+
+// IMPORTANT: Do NOT use app.listen()
+// Export the app for Vercel
+module.exports = app;
