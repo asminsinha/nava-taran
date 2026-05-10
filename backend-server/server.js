@@ -127,7 +127,7 @@ app.get('/api/exoplanets', async (req, res) => {
 
 const PORT = 5000;
 app.get('/api/satellite-scan', async (req, res) => {
-    const KEY = process.env.N2YO_KEY || "GR6XLX-VVD74P-944NFM-5O4Z";
+    const KEY = process.env.N2YO_API_KEY;
     const satIds = [44804, 51656, 54361, 41752, 45026];
     
     try {
