@@ -651,7 +651,7 @@ button:hover, button.active {
     width: 100vw;
     height: 100vh;
     
-    background-image: url('client\public\Space background.png'); 
+    background-image: url('client\public\Space-background.png'); 
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
