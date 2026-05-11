@@ -14,13 +14,11 @@ app.use(express.json());
 // SUPABASE 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
-const N2YO_API_KEY = "GR6XLX-VVD74P-944NFM-5O4Z";
 const supabase = createClient(supabaseUrl, supabaseKey);
 
 console.log(" Global Vault Initialized (Supabase Cloud)");
 
-const genAI = new GoogleGenerativeAI(process.env.AI_API_KEY);
-const NASA_API_KEY = 'f0nUSEdD2HRLohxB2Onm23crGfSbkYm15KLPl4Mo'; 
+const genAI = new GoogleGenerativeAI(process.env.AI_API_KEY); 
 
 // AUTHENTICATION
 
@@ -82,8 +80,6 @@ app.delete('/api/auth/retire-profile', async (req, res) => {
         res.status(500).json({ message: "System error during profile retirement." });
     }
 });
-
-
 
 app.post('/api/space-chat', async (req, res) => {
     const { message } = req.body;
@@ -165,6 +161,7 @@ app.get('/api/satellite-scan', async (req, res) => {
         res.status(500).json({ error: "Uplink to N2YO lost. Check API Key or Rate Limits." });
     }
 });
+
 app.listen(PORT, () => {
     console.log(`Mission Control active at http://localhost:${PORT}`);
 });
