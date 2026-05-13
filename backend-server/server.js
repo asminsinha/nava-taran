@@ -124,38 +124,36 @@ app.get('/api/exoplanets', async (req, res) => {
 const PORT = 5000;
 app.get('/api/satellite-scan', async (req, res) => {
     const KEY = process.env.N2YO_API_KEY;
-    const satIds = [44804, 51656, 54361, 41752, 45026, 41877, 45034, 7752, 43286, 53123];
+    const satIds = [44804, 51656, 54361, 41752, 450263];
     
-try {
-        // Map every ID to an axios promise
-        const requests = satIds.map(id => 
-            axios.get(`https://api.n2yo.com/rest/v1/satellite/positions/${id}/20.59/78.96/0/1/&apiKey=${KEY}`)
-            .catch(err => {
-                console.error(`Uplink Error for ID ${id}:`, err.message);
-                return null; // Keep the loop going even if one fails
-            })
-        );
+    try {
+        const missionData = [];
 
-        // Execute all 10 requests simultaneously
-        const responses = await Promise.all(requests);
-        
-        // Filter out any nulls (failed requests) and format the data
-        const missionData = responses
-            .filter(r => r && r.data && r.data.positions)
-            .map(r => {
-                const pos = r.data.positions[0];
-                return {
-                    name: r.data.info.satname,
-                    id: r.data.info.satid,
-                    lat: pos.satlatitude,
-                    lng: pos.satlongitude,
-                    alt: pos.sataltitude,
-                    azimuth: pos.azimuth,
-                    elevation: pos.elevation
-                };
-            });
 
-        console.log(`Successfully tracked ${missionData.length} orbital assets.`);
+        for (const id of satIds) {
+            try {
+                const url = `https://api.n2yo.com/rest/v1/satellite/positions/${id}/20.59/78.96/0/1/&apiKey=${KEY}`;
+                const r = await axios.get(url);
+
+                if (r.data && r.data.positions) {
+                    const pos = r.data.positions[0];
+                    missionData.push({
+                        name: r.data.info.satname,
+                        id: r.data.info.satid,
+                        lat: pos.satlatitude,
+                        lng: pos.satlongitude,
+                        alt: pos.sataltitude,
+                        azimuth: pos.azimuth,
+                        elevation: pos.elevation
+                    });
+                }
+            } catch (innerError) {
+                console.warn(`Could not track satellite ${id}:`, innerError.message);
+               
+            }
+        }
+
+        if (missionData.length === 0) throw new Error("No orbital data retrieved");
         res.json(missionData);
 
     } catch (error) {
