@@ -715,3 +715,20 @@ button:hover, button.active {
         display: none;
     }
 }
+
+/* Neural Link Telemetry Animations */
+@keyframes scan-line {
+    0% { left: -30%; }
+    100% { left: 100%; }
+}
+
+.neural-link-window {
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.2);
+    border-radius: 2px;
+    animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}

@@ -7,6 +7,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
+import NeuralLinkTelemetry from './NeuralLinkTelemetry';
 let DefaultIcon = L.icon({ iconUrl: icon, shadowUrl: iconShadow, iconSize: [25, 41], iconAnchor: [12, 41] });
 L.Marker.prototype.options.icon = DefaultIcon;
 
@@ -452,7 +453,8 @@ const sendMessage = async () => {
         </div>
 
 
-        <div className="mission-control-wrapper" style={{ padding: '0 20px' }}>
+        <div className="mission-control-wrapper" style={{ padding: '0 20px', position: 'relative' }}>
+            <NeuralLinkTelemetry />
             <div className="hud-header" style={{ textAlign: 'center', marginBottom: '10px' }}>
                 <h2 style={{ 
                     color: '#00ff88', 
