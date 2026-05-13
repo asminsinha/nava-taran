@@ -14,7 +14,49 @@ const NeuralLinkTelemetry = () => {
             nasa: 'ACTIVE'
         }
     });
+    useEffect(() => {
+    const startTime = Date.now();
+    let frameCount = 0;
+    let lastTime = performance.now();
 
+    // FPS Calculation Loop
+    const checkFPS = () => {
+        frameCount++;
+        const now = performance.now();
+        if (now >= lastTime + 1000) {
+            setStats(prev => ({ ...prev, fps: frameCount }));
+            frameCount = 0;
+            lastTime = now;
+        }
+        requestAnimationFrame(checkFPS);
+    };
+    const fpsId = requestAnimationFrame(checkFPS);
+
+    // Standard Telemetry Loop (every 2 seconds)
+    const interval = setInterval(() => {
+        // Latency
+        const t0 = performance.now();
+        fetch('https://www.google.com/favicon.ico', { mode: 'no-cors' })
+            .then(() => setStats(prev => ({ ...prev, latency: Math.round(performance.now() - t0) })));
+
+        // Battery
+        if (navigator.getBattery) {
+            navigator.getBattery().then(bat => setStats(prev => ({ ...prev, battery: `${Math.round(bat.level * 100)}%` })));
+        }
+
+        // Mission Uptime
+        const diff = Math.floor((Date.now() - startTime) / 1000);
+        const hrs = String(Math.floor(diff / 3600)).padStart(2, '0');
+        const mins = String(Math.floor((diff % 3600) / 60)).padStart(2, '0');
+        const secs = String(diff % 60).padStart(2, '0');
+        setStats(prev => ({ ...prev, uptime: `${hrs}:${mins}:${secs}` }));
+    }, 2000);
+
+    return () => {
+        clearInterval(interval);
+        cancelAnimationFrame(fpsId);
+    };
+    }, []);
     useEffect(() => {
         const startTime = Date.now();
         
@@ -61,13 +103,14 @@ const NeuralLinkTelemetry = () => {
                 style={{
                     background: 'rgba(0, 255, 255, 0.1)',
                     border: '1px solid #00ffff',
+                    borderRadius: '10px',
                     color: '#00ffff',
-                    padding: '8px 16px', // Increased from 5px 10px
+                    padding: '4px 10px', // Increased from 5px 10px
                     fontFamily: 'Orbitron, sans-serif',
-                    fontSize: '12px',      // Increased from 10px
+                    fontSize: '9px',      // Increased from 10px
                     letterSpacing: '1px',  // Added for tactical look
                     cursor: 'pointer',
-                    boxShadow: '0 0 10px rgba(0, 255, 255, 0.3)'
+                    boxShadow: 'inset 0 0 10px rgba(0, 255, 255, 0.2)'
                 }}
             >
                 {isOpen ? '✕ CLOSE DIAGNOSTICS' : '⚙ SYSTEM TELEMETRY'}
@@ -76,7 +119,6 @@ const NeuralLinkTelemetry = () => {
             {/* The Telemetry Pop-down Window */}
             {isOpen && (
                 <div style={{
-                    marginTop: '8px',
                     width: '240px', // Slightly wider for more data
                     background: 'rgba(0, 10, 20, 0.95)',
                     border: '1px solid #00ffff',
@@ -93,6 +135,7 @@ const NeuralLinkTelemetry = () => {
 <div style={{ marginBottom: '10px' }}>
         <div style={{ color: '#888', fontSize: '9px', marginBottom: '2px' }}>HARDWARE TELEMETRY</div>
         <div>UPLINK LATENCY: <span style={{color: stats.latency > 200 ? '#ff3333' : '#00ff00'}}>{stats.latency}ms</span></div>
+        <div>FRAME RENDERING: <span style={{color: stats.fps < 30 ? '#ff3333' : '#00ff00'}}>{stats.fps} FPS</span></div>
         <div>ACTIVE CORES: {stats.cores}</div>
         <div>DEVICE CHARGE: {stats.battery}</div>
     </div>
