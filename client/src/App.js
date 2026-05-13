@@ -446,15 +446,15 @@ const sendMessage = async () => {
 {view === 'earth' && (
     <div className="earth-view">
 
-        <div className="earth-banner">
-            <div className="banner-overlay">
+        <div className="earth-banner" style={{ padding: '0 20px', position: 'relative' }}>
+            <NeuralLinkTelemetry />
+            <div className="banner-overlay" style={{ padding: '0 20px', position: 'relative' }}>
                 <h1>TERRA-SCAN: MISSION CONTROL</h1>
             </div>
         </div>
 
 
         <div className="mission-control-wrapper" style={{ padding: '0 20px', position: 'relative' }}>
-            <NeuralLinkTelemetry />
             <div className="hud-header" style={{ textAlign: 'center', marginBottom: '10px' }}>
                 <h2 style={{ 
                     color: '#00ff88', 
