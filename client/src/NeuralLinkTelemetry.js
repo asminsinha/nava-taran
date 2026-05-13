@@ -103,7 +103,7 @@ const NeuralLinkTelemetry = () => {
                 style={{
                     background: 'rgba(0, 255, 255, 0.1)',
                     border: '1px solid #00ffff',
-                    borderRadius: '10px',
+                    borderRadius: '15px',
                     color: '#00ffff',
                     padding: '4px 10px', // Increased from 5px 10px
                     fontFamily: 'Orbitron, sans-serif',
@@ -130,7 +130,7 @@ const NeuralLinkTelemetry = () => {
                     boxShadow: '0 10px 30px rgba(0,0,0,0.5)'
                 }}>
                     <div style={{ borderBottom: '1px solid #00ffff33', paddingBottom: '5px', marginBottom: '8px', fontWeight: 'bold' }}>
-                        NAVATARAN CORE DIAGNOSTICS
+                        NAVA-TARAN CORE DIAGNOSTICS
                     </div>
 <div style={{ marginBottom: '10px' }}>
         <div style={{ color: '#888', fontSize: '9px', marginBottom: '2px' }}>HARDWARE TELEMETRY</div>
