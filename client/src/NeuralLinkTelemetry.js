@@ -7,7 +7,12 @@ const NeuralLinkTelemetry = () => {
         fps: 60,
         battery: 'N/A',
         cores: navigator.hardwareConcurrency || '??',
-        uptime: '00:00:00'
+        uptime: '00:00:00',
+        uplinks: {
+            satellite: 'CONNECTING...',
+            disaster: 'STABLE',
+            nasa: 'ACTIVE'
+        }
     });
 
     useEffect(() => {
@@ -34,6 +39,15 @@ const NeuralLinkTelemetry = () => {
             const mins = String(Math.floor((diff % 3600) / 60)).padStart(2, '0');
             const secs = String(diff % 60).padStart(2, '0');
             setStats(prev => ({ ...prev, uptime: `${hrs}:${mins}:${secs}` }));
+
+            setStats(prev => ({
+            ...prev,
+                uplinks: {
+                    satellite: prev.latency > 500 ? 'DEGRADED' : 'STABLE',
+                    disaster: prev.latency > 500 ? 'OFF-SYNC':'SYNCHRONIZED',
+                    nasa: prev.latency > 500 ? 'DECRYPTED':'ENCRYPTED'
+                }
+            }));
         }, 2000);
 
         return () => clearInterval(interval);
@@ -48,9 +62,10 @@ const NeuralLinkTelemetry = () => {
                     background: 'rgba(0, 255, 255, 0.1)',
                     border: '1px solid #00ffff',
                     color: '#00ffff',
-                    padding: '5px 10px',
+                    padding: '8px 16px', // Increased from 5px 10px
                     fontFamily: 'Orbitron, sans-serif',
-                    fontSize: '10px',
+                    fontSize: '12px',      // Increased from 10px
+                    letterSpacing: '1px',  // Added for tactical look
                     cursor: 'pointer',
                     boxShadow: '0 0 10px rgba(0, 255, 255, 0.3)'
                 }}
@@ -61,34 +76,47 @@ const NeuralLinkTelemetry = () => {
             {/* The Telemetry Pop-down Window */}
             {isOpen && (
                 <div style={{
-                    marginTop: '5px',
-                    width: '200px',
-                    background: 'rgba(0, 10, 20, 0.9)',
+                    marginTop: '8px',
+                    width: '240px', // Slightly wider for more data
+                    background: 'rgba(0, 10, 20, 0.95)',
                     border: '1px solid #00ffff',
-                    padding: '10px',
+                    padding: '12px',
                     color: '#00ffff',
                     fontFamily: 'monospace',
                     fontSize: '11px',
-                    backdropFilter: 'blur(5px)'
+                    backdropFilter: 'blur(8px)',
+                    boxShadow: '0 10px 30px rgba(0,0,0,0.5)'
                 }}>
-                    <div style={{ borderBottom: '1px solid #00ffff33', paddingBottom: '5px', marginBottom: '5px' }}>
-                        NEURAL LINK: ACTIVE
+                    <div style={{ borderBottom: '1px solid #00ffff33', paddingBottom: '5px', marginBottom: '8px', fontWeight: 'bold' }}>
+                        NAVATARAN CORE DIAGNOSTICS
                     </div>
-                    <div>UPLINK LATENCY: <span style={{color: stats.latency > 200 ? 'red' : '#00ff00'}}>{stats.latency}ms</span></div>
-                    <div>SYSTEM CORES: {stats.cores}</div>
-                    <div>DEVICE CHARGE: {stats.battery}</div>
-                    <div>MISSION UPTIME: {stats.uptime}</div>
-                    
-                    {/* The "Loading Line" Aesthetic */}
-                    <div style={{ height: '2px', background: '#333', marginTop: '10px', position: 'relative' }}>
-                        <div style={{ 
-                            position: 'absolute', 
-                            height: '100%', 
-                            width: '30%', 
-                            background: '#00ffff', 
-                            animation: 'scan-line 2s infinite linear' 
-                        }}></div>
-                    </div>
+<div style={{ marginBottom: '10px' }}>
+        <div style={{ color: '#888', fontSize: '9px', marginBottom: '2px' }}>HARDWARE TELEMETRY</div>
+        <div>UPLINK LATENCY: <span style={{color: stats.latency > 200 ? '#ff3333' : '#00ff00'}}>{stats.latency}ms</span></div>
+        <div>ACTIVE CORES: {stats.cores}</div>
+        <div>ENERGY CELL: {stats.battery}</div>
+    </div>
+
+    {/* Communication Uplinks Section */}
+    <div style={{ marginBottom: '10px' }}>
+        <div style={{ color: '#888', fontSize: '9px', marginBottom: '2px' }}>COMMUNICATION UPLINKS</div>
+        <div>SAT-TRACKER: <span style={{color: '#00ff00'}}>{stats.uplinks.satellite}</span></div>
+        <div>TERRA-DISASTER: <span style={{color: '#00ff00'}}>{stats.uplinks.disaster}</span></div>
+        <div>NASA-DATASET: <span style={{color: '#00ff00'}}>{stats.uplinks.nasa}</span></div>
+    </div>
+
+    <div style={{ marginTop: '5px', fontSize: '10px' }}>MISSION UPTIME: {stats.uptime}</div>
+    
+    {/* Animated Loading Bar */}
+    <div style={{ height: '2px', background: '#111', marginTop: '10px', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ 
+            position: 'absolute', 
+            height: '100%', 
+            width: '40%', 
+            background: 'linear-gradient(90deg, transparent, #00ffff, transparent)', 
+            animation: 'scan-line 1.5s infinite linear' 
+        }}></div>
+    </div>
                     <style>{`
                         @keyframes scan-line {
                             0% { left: 0; }
