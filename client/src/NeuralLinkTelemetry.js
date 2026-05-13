@@ -14,49 +14,7 @@ const NeuralLinkTelemetry = () => {
             nasa: 'ACTIVE'
         }
     });
-    useEffect(() => {
-    const startTime = Date.now();
-    let frameCount = 0;
-    let lastTime = performance.now();
 
-    // FPS Calculation Loop
-    const checkFPS = () => {
-        frameCount++;
-        const now = performance.now();
-        if (now >= lastTime + 1000) {
-            setStats(prev => ({ ...prev, fps: frameCount }));
-            frameCount = 0;
-            lastTime = now;
-        }
-        requestAnimationFrame(checkFPS);
-    };
-    const fpsId = requestAnimationFrame(checkFPS);
-
-    // Standard Telemetry Loop (every 2 seconds)
-    const interval = setInterval(() => {
-        // Latency
-        const t0 = performance.now();
-        fetch('https://www.google.com/favicon.ico', { mode: 'no-cors' })
-            .then(() => setStats(prev => ({ ...prev, latency: Math.round(performance.now() - t0) })));
-
-        // Battery
-        if (navigator.getBattery) {
-            navigator.getBattery().then(bat => setStats(prev => ({ ...prev, battery: `${Math.round(bat.level * 100)}%` })));
-        }
-
-        // Mission Uptime
-        const diff = Math.floor((Date.now() - startTime) / 1000);
-        const hrs = String(Math.floor(diff / 3600)).padStart(2, '0');
-        const mins = String(Math.floor((diff % 3600) / 60)).padStart(2, '0');
-        const secs = String(diff % 60).padStart(2, '0');
-        setStats(prev => ({ ...prev, uptime: `${hrs}:${mins}:${secs}` }));
-    }, 2000);
-
-    return () => {
-        clearInterval(interval);
-        cancelAnimationFrame(fpsId);
-    };
-    }, []);
     useEffect(() => {
         const startTime = Date.now();
         
@@ -135,7 +93,6 @@ const NeuralLinkTelemetry = () => {
 <div style={{ marginBottom: '10px' }}>
         <div style={{ color: '#888', fontSize: '9px', marginBottom: '2px' }}>HARDWARE TELEMETRY</div>
         <div>UPLINK LATENCY: <span style={{color: stats.latency > 200 ? '#ff3333' : '#00ff00'}}>{stats.latency}ms</span></div>
-        <div>FRAME RENDERING: <span style={{color: stats.fps < 30 ? '#ff3333' : '#00ff00'}}>{stats.fps} FPS</span></div>
         <div>ACTIVE CORES: {stats.cores}</div>
         <div>DEVICE CHARGE: {stats.battery}</div>
     </div>
