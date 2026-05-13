@@ -94,7 +94,7 @@ const NeuralLinkTelemetry = () => {
         <div style={{ color: '#888', fontSize: '9px', marginBottom: '2px' }}>HARDWARE TELEMETRY</div>
         <div>UPLINK LATENCY: <span style={{color: stats.latency > 200 ? '#ff3333' : '#00ff00'}}>{stats.latency}ms</span></div>
         <div>ACTIVE CORES: {stats.cores}</div>
-        <div>ENERGY CELL: {stats.battery}</div>
+        <div>DEVICE CHARGE: {stats.battery}</div>
     </div>
 
     {/* Communication Uplinks Section */}
