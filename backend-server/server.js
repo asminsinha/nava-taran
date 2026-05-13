@@ -124,51 +124,41 @@ app.get('/api/exoplanets', async (req, res) => {
 const PORT = 5000;
 app.get('/api/satellite-scan', async (req, res) => {
     const KEY = process.env.N2YO_API_KEY;
-    
-    // THE MASTER LIST - Ensure all 10 are here
-    const satIds = [
-        44804, 51656, 54361, 41752, 45026, // Original 5
-        41877, 45034, 43286, 53123, 39234  // Added 5 Tactical Assets
-    ];
+    const satIds = [44804, 51656, 54361, 41752, 450263];
     
     try {
-        // We use .map to create an array of "Promises"
-        const satellitePromises = satIds.map(async (id) => {
+        const missionData = [];
+
+
+        for (const id of satIds) {
             try {
                 const url = `https://api.n2yo.com/rest/v1/satellite/positions/${id}/20.59/78.96/0/1/&apiKey=${KEY}`;
-                const response = await axios.get(url, { timeout: 5000 }); // 5 second timeout per call
+                const r = await axios.get(url);
 
-                if (response.data && response.data.positions) {
-                    const pos = response.data.positions[0];
-                    return {
-                        name: response.data.info.satname,
-                        id: response.data.info.satid,
+                if (r.data && r.data.positions) {
+                    const pos = r.data.positions[0];
+                    missionData.push({
+                        name: r.data.info.satname,
+                        id: r.data.info.satid,
                         lat: pos.satlatitude,
                         lng: pos.satlongitude,
                         alt: pos.sataltitude,
                         azimuth: pos.azimuth,
                         elevation: pos.elevation
-                    };
+                    });
                 }
-                return null;
-            } catch (err) {
-                console.error(`Telemetry Lost for Satellite ${id}:`, err.message);
-                return null; // Return null so the whole app doesn't crash
+            } catch (innerError) {
+                console.warn(`Could not track satellite ${id}:`, innerError.message);
+               
             }
-        });
+        }
 
-        // Promise.all executes all 10 requests SIMULTANEOUSLY
-        const results = await Promise.all(satellitePromises);
-        
-        // Remove any nulls from failed requests
-        const missionData = results.filter(item => item !== null);
-
-        console.log(`UPLINK SUCCESS: Synchronized with ${missionData.length} orbital assets.`);
+        if (missionData.length === 0) throw new Error("No orbital data retrieved");
         res.json(missionData);
 
     } catch (error) {
-        console.error("CRITICAL SYSTEM FAILURE:", error.message);
-        res.status(500).json({ error: "Orbital Uplink Lost" });
+        console.error("Critical Tracking Failure:", error.message);
+        res.status(500).json({ error: "Uplink to N2YO lost. Check API Key or Rate Limits." });
     }
 });
 
