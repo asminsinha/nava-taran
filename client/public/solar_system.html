@@ -26,6 +26,16 @@
         }
         button:hover { background: rgba(0, 242, 255, 0.3); }
         canvas { display: block; cursor: crosshair; }
+        /* Time Controls Styling */
+        #time-controls { 
+            position: absolute; bottom: 100px; left: 50%; transform: translateX(-50%); 
+            width: 80%; background: rgba(0, 20, 40, 0.9); padding: 15px; 
+            border: 1px solid #00f2ff; pointer-events: auto; display: flex; 
+            flex-direction: column; gap: 10px; z-index: 100;
+        }
+        .speed-row { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px; }
+        .btn-group { display: flex; gap: 5px; }
+        .btn-group button { width: 45px; margin: 0; padding: 5px; font-size: 10px; }
     </style>
 </head>
 <body>
@@ -34,7 +44,21 @@
         <h1>ORBITAL WATCH : SOL-3D</h1>
         <p>SYSTEM: SOL | REGION: ORION ARM | GALAXY: MILKY WAY | STATUS: <span id="status-display" style="color: #ffaa00;">SCANNING</span></p>
     </div>
-
+    </div> <div id="time-controls">
+        <div class="speed-row">
+            <span id="current-sim-time">TIME: INITIALIZING...</span>
+            <div class="btn-group">
+                <button class="speed-btn" data-speed="1">1x</button>
+                <button class="speed-btn" data-speed="10">10x</button>
+                <button class="speed-btn" data-speed="100">100x</button>
+                <button class="speed-btn" data-speed="500">500x</button>
+            </div>
+        </div>
+        <input type="range" id="time-slider" min="0" max="63072000" value="0" style="width: 100%; cursor: pointer;">
+        <div style="display: flex; gap: 10px;">
+            <input type="datetime-local" id="manual-date" style="background: #000; color: #00f2ff; border: 1px solid #00f2ff; padding: 5px; flex-grow: 1;">
+            <button id="jump-to-date" style="width: 100px; margin: 0;">JUMP</button>
+        </div>
     <div id="data-box" class="data-box">
         <h3 id="planet-name" style="margin:0; color:#00f2ff; letter-spacing:2px;">---</h3>
         <div class="data-grid">
@@ -58,6 +82,8 @@
     <script type="module">
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+        import { OrbitEngine } from './OrbitEngine.js';
+        const engine = new OrbitEngine();
 
         const planetFacts = {
             "Mercury": { mass: "3.28e23 kg", grav: "3.7 m/s²", dens: "5.42 g/cm³", age: "4.503B yrs", actualMoonCount: 0, majorMoons: "None", desc: "The smallest planet and closest to the Sun. It has a solid, cratered surface, much like Earth's moon." },
@@ -153,7 +179,7 @@
                 moonObjects.push({ group: mOrbit, speed: m.speed });
             });
 
-            planets.push({ group: orbitGroup, mesh: pMesh, speed: data.speed });
+            planets.push({ group: orbitGroup, mesh: pMesh, speed: data.speed, name: data.name });
         });
 
         const sunLight = new THREE.PointLight(0xffffff, 250, 2000, 1.2);
@@ -205,22 +231,25 @@
             statusDisplay.innerText = "SCANNING";
             statusDisplay.style.color = "#ffaa00";
         };
+        // Time Travel UI Listeners
+        document.querySelectorAll('.speed-btn').forEach(btn => {
+            btn.onclick = (e) => { engine.timeScale = parseFloat(e.target.dataset.speed); };
+        });
 
+        document.getElementById('jump-to-date').onclick = () => {
+            const dateVal = document.getElementById('manual-date').value;
+            if(dateVal) engine.simulationTime = new Date(dateVal).getTime();
+        };
         function animate() {
-            requestAnimationFrame(animate);
-            const globalSpeed = 0.08; 
-            planets.forEach(p => {
-                p.group.rotation.y += (p.speed * globalSpeed);
-                p.mesh.rotation.y += 0.008;
-            });
-            moonObjects.forEach(m => m.group.rotation.y += m.speed);
-            if (selectedPlanet) {
-                const worldPos = new THREE.Vector3();
-                selectedPlanet.getWorldPosition(worldPos);
-                controls.target.lerp(worldPos, 0.1); 
-            }
-            controls.update();
-            renderer.render(scene, camera);
+// Time Travel UI Listeners
+        document.querySelectorAll('.speed-btn').forEach(btn => {
+            btn.onclick = (e) => { engine.timeScale = parseFloat(e.target.dataset.speed); };
+        });
+
+        document.getElementById('jump-to-date').onclick = () => {
+            const dateVal = document.getElementById('manual-date').value;
+            if(dateVal) engine.simulationTime = new Date(dateVal).getTime();
+        };
         }
         animate();
 
