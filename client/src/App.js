@@ -31,7 +31,7 @@ const SolarNexus = () => {
     <div className="solar-nexus-iframe-wrapper" style={{ width: '100%', height: 'calc(100vh - 60px)', overflow: 'hidden' }}>
       <iframe
         title="Solar System View"
-        src="/solar_system.html" 
+        src="/index.html" 
         style={{ width: '100%', height: '100%', border: 'none' }}
       />
     </div>
