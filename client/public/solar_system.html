@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<html><!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -109,8 +110,57 @@
     <script type="module">
         import * as THREE from 'three';
         import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-        const API_BASE = '';
-        fetch('/api/planet-positions')
+        const JPL_DATA = {
+    "Mercury": { a0: 0.38709927, a_dot: 0.00000037, e0: 0.20563593, e_dot: 0.00001906, I0: 7.00497902, I_dot: -0.00594749, L0: 252.25032350, L_dot: 149472.67411175, long_peri0: 77.45779628, long_peri_dot: 0.16047689, long_node0: 48.33076593, long_node_dot: -0.12534081 },
+    "Venus":   { a0: 0.72333566, a_dot: 0.00000390, e0: 0.00677672, e_dot: -0.00004107, I0: 3.39467605, I_dot: -0.00078890, L0: 181.97909950, L_dot: 58517.81538729, long_peri0: 131.60246718, long_peri_dot: 0.00268329, long_node0: 76.67984255, long_node_dot: -0.27769418 },
+    "Earth":   { a0: 1.00000261, a_dot: 0.00000005, e0: 0.01671123, e_dot: -0.00003661, I0: -0.00001531, I_dot: -0.01294668, L0: 100.46457166, L_dot: 35999.37244981, long_peri0: 102.93768193, long_peri_dot: 0.32327364, long_node0: 0.0, long_node_dot: 0.0 },
+    "Mars":    { a0: 1.52371034, a_dot: 0.00001847, e0: 0.09339410, e_dot: 0.00007882, I0: 1.84969142, I_dot: -0.00813131, L0: -4.55343205, L_dot: 19140.30268499, long_peri0: -23.94362959, long_peri_dot: 0.44441088, long_node0: 49.55953891, long_node_dot: -0.29257343 },
+    "Jupiter": { a0: 5.20288700, a_dot: -0.00011607, e0: 0.04838624, e_dot: -0.00013253, I0: 1.30439695, I_dot: -0.00183714, L0: 34.39644051, L_dot: 3034.74612775, long_peri0: 14.72847983, long_peri_dot: 0.21252668, long_node0: 100.47390909, long_node_dot: 0.20469106 },
+    "Saturn":  { a0: 9.53667594, a_dot: -0.00125060, e0: 0.05386179, e_dot: -0.00050991, I0: 2.48599187, I_dot: 0.00193609, L0: 49.95424423, L_dot: 1222.49435860, long_peri0: 92.59887831, long_peri_dot: -0.41897216, long_node0: 113.66242448, long_node_dot: -0.28867794 },
+    "Uranus":  { a0: 19.18916464, a_dot: -0.00196176, e0: 0.04725744, e_dot: -0.00004397, I0: 0.77263783, I_dot: -0.00242939, L0: 313.23810451, L_dot: 428.48202785, long_peri0: 170.95427630, long_peri_dot: 0.40805281, long_node0: 74.00595701, long_node_dot: 0.04240581 },
+    "Neptune": { a0: 30.06992276, a_dot: 0.00026291, e0: 0.00859048, e_dot: 0.00005105, I0: 1.77004347, I_dot: 0.00035372, L0: -55.12002969, L_dot: 218.45945325, long_peri0: 44.97135035, long_peri_dot: -0.32241464, long_node0: 131.78422574, long_node_dot: -0.00508664 },
+    "Pluto":   { a0: 39.482117, a_dot: -0.000315, e0: 0.2488, e_dot: 0.00001, I0: 17.14, I_dot: 0.0001, L0: 238.92, L_dot: 145.2, long_peri0: 224.06, long_peri_dot: 0.0, long_node0: 110.3, long_node_dot: 0.0 }
+};
+
+        function getJulianDate(date) {
+    return (date.getTime() / 86400000) + 2440587.5;
+}
+
+        function calculatePlanetPosition(name, date) {
+    const el = JPL_DATA[name];
+    if (!el) return { x: 0, z: 0 };
+
+    const T = (getJulianDate(date) - 2451545.0) / 36525.0;
+    
+    const a = el.a0 + (el.a_dot * T);
+    const e = el.e0 + (el.e_dot * T);
+    const I = (el.I0 + (el.I_dot * T)) * Math.PI / 180;
+    const L = (el.L0 + (el.L_dot * T)) * Math.PI / 180;
+    const longPeri = (el.long_peri0 + (el.long_peri_dot * T)) * Math.PI / 180;
+    const longNode = (el.long_node0 + (el.long_node_dot * T)) * Math.PI / 180;
+
+    const w = longPeri - longNode;
+    const M = L - longPeri;
+
+    let E = M;
+    for(let i=0; i<10; i++) {
+        E = E + (M - (E - e * Math.sin(E))) / (1 - e * Math.cos(E));
+    }
+
+    const x_plane = a * (Math.cos(E) - e);
+    const y_plane = a * Math.sqrt(1 - e * e) * Math.sin(E);
+
+
+    const cosNode = Math.cos(longNode);
+    const sinNode = Math.sin(longNode);
+    const cosW_I = Math.cos(w);
+
+    const x = (Math.cos(w) * Math.cos(longNode) - Math.sin(w) * Math.sin(longNode) * Math.cos(I)) * x_plane + (-Math.sin(w) * Math.cos(longNode) - Math.cos(w) * Math.sin(longNode) * Math.cos(I)) * y_plane;
+    const y = (Math.cos(w) * Math.sin(longNode) + Math.sin(w) * Math.cos(longNode) * Math.cos(I)) * x_plane + (-Math.sin(w) * Math.sin(longNode) + Math.cos(w) * Math.cos(longNode) * Math.cos(I)) * y_plane;
+
+    return { angle: Math.atan2(y, x) };
+}
+
         const planetFacts = {
             "Mercury": { mass: "3.28e23 kg", grav: "3.7 m/s²", dens: "5.42 g/cm³", age: "4.503B yrs", actualMoonCount: 0, majorMoons: "None", desc: "The smallest planet and closest to the Sun. It has a solid, cratered surface, much like Earth's moon." },
             "Venus": { mass: "4.86e24 kg", grav: "8.87 m/s²", dens: "5.24 g/cm³", age: "4.503B yrs", actualMoonCount: 0, majorMoons: "None", desc: "Spinning in the opposite direction to most planets, Venus is the hottest world in our solar system." },
@@ -237,93 +287,19 @@
         const controls = new OrbitControls(camera, renderer.domElement);
         controls.enableDamping = true;
 
-        const raycaster = new THREE.Raycaster();
-        const mouse = new THREE.Vector2();
-
-        window.addEventListener('click', (event) => {
-            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-            raycaster.setFromCamera(mouse, camera);
-            const hits = raycaster.intersectObjects(planets.map(p => p.mesh));
-            if (hits.length > 0) {
-                selectedPlanet = hits[0].object;
-                const pName = selectedPlanet.userData.name;
-                const stats = planetFacts[pName];
-                
-                document.getElementById('data-box').style.display = 'block';
-                document.getElementById('planet-name').innerText = pName.toUpperCase();
-                
-                document.getElementById('val-mass').innerText = stats.mass;
-                document.getElementById('val-grav').innerText = stats.grav;
-                document.getElementById('val-dens').innerText = stats.dens;
-                document.getElementById('val-age').innerText = stats.age;
-                document.getElementById('val-moons').innerText = stats.actualMoonCount;
-                document.getElementById('moon-names').innerText = stats.majorMoons;
-                document.getElementById('planet-desc').innerText = stats.desc;
-                
-                statusDisplay.innerText = "TRACKING";
-                statusDisplay.style.color = "#00ff88";
-            }
-        });
-
-        document.getElementById('reset-btn').onclick = () => {
-            selectedPlanet = null;
-            controls.target.set(0, 0, 0);
-            document.getElementById('data-box').style.display = 'none';
-            statusDisplay.innerText = "SCANNING";
-            statusDisplay.style.color = "#ffaa00";
-        };
         
-        const speedSlider = document.getElementById('speed-slider');
-        const speedLabel = document.getElementById('speed-label');
 
-        speedSlider.addEventListener('input', () => {
-
-    simulationSpeed = parseFloat(speedSlider.value);
-
-    speedLabel.innerText = simulationSpeed + 'x';
-});
-
-        document.getElementById('present-btn').onclick = () => {
-    resetToPresent();
-};
-
-        document.getElementById('jump-btn').onclick = () => {
-    jumpToDate();
-};
-
-        async function fetchPlanetPositions(dateString = null) {
-    
-    try {
-        let url = `/api/planet-positions`;
-        if(dateString) url += `?date=${encodeURIComponent(dateString)}`;
-
-        const response = await fetch(url);
-        const data = await response.json();
-
-        Object.keys(data).forEach(name => {
-            const planet = planetObjects[name];
-            if(!planet) return;
-
-            const p = data[name];
-            
-            // LOGIC: We keep the Visual Orbits (p.dist) but update the 
-            // position based on the REAL angle from Skyfield.
-            const angle = Math.atan2(p.y, p.x);
-            planet.orbitAngle = angle;
-
-            // Snap the planet to its calculated position on its visual ring
-            planet.mesh.position.x = Math.cos(angle) * planet.orbitRadius;
-            planet.mesh.position.z = Math.sin(angle) * planet.orbitRadius;
-        });
-        
-        
-        
-    } catch(err) {
-        console.error('Planet fetch failed:', err);
-        
-    }
+function updatePlanetPositions() {
+    planets.forEach(p => {
+        const res = calculatePlanetPosition(p.name, currentSimulationDate);
+        p.orbitAngle = res.angle;
+        p.mesh.position.x = Math.cos(p.orbitAngle) * p.orbitRadius;
+        p.mesh.position.z = Math.sin(p.orbitAngle) * p.orbitRadius;
+    });
+    statusDisplay.innerText = "LIVE SYNC ACTIVE";
+    statusDisplay.style.color = "#00f2ff";
 }
+
 
         function simulateOrbitalMotion(delta) {
 
@@ -347,70 +323,79 @@
     });
 }
 
-        async function resetToPresent() {
+const speedSlider = document.getElementById('speed-slider');
+const speedLabel = document.getElementById('speed-label');
+speedSlider.addEventListener('input', () => {
+    simulationSpeed = parseFloat(speedSlider.value);
+    speedLabel.innerText = simulationSpeed + 'x';
+});
 
+document.getElementById('present-btn').onclick = () => {
     liveTrackingEnabled = true;
-
     currentSimulationDate = new Date();
+    updatePlanetPositions();
+};
 
-    document.getElementById('date-input').value = '';
-
-    await fetchPlanetPositions();
-}
-
-        async function jumpToDate() {
-
+document.getElementById('jump-btn').onclick = () => {
     const val = document.getElementById('date-input').value;
-
     if(!val) return;
-
     liveTrackingEnabled = false;
-
     currentSimulationDate = new Date(val);
+    updatePlanetPositions();
+};
 
-    await fetchPlanetPositions(val);
-}
-
-        const clock = new THREE.Clock();
-
-        function animate() {
-
+const clock = new THREE.Clock();
+function animate() {
     requestAnimationFrame(animate);
-
     const delta = clock.getDelta() * 60;
-
     simulateOrbitalMotion(delta);
 
-    const now = Date.now();
-
-    if(liveTrackingEnabled && simulationSpeed <= 5 && now - lastFetchTime > 900000){
-
-        lastFetchTime = now;
-
-        fetchPlanetPositions();
-    }
-
     if (selectedPlanet) {
-
         const worldPos = new THREE.Vector3();
-
         selectedPlanet.getWorldPosition(worldPos);
-
         controls.target.lerp(worldPos, 0.1);
     }
-
     controls.update();
-
     renderer.render(scene, camera);
 }
 
-        animate();
-        fetchPlanetPositions();
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
+animate();
+updatePlanetPositions();
+
+window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
+
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+window.addEventListener('click', (event) => {
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+    raycaster.setFromCamera(mouse, camera);
+    const hits = raycaster.intersectObjects(planets.map(p => p.mesh));
+    if (hits.length > 0) {
+        selectedPlanet = hits[0].object;
+        const pName = selectedPlanet.userData.name;
+        const stats = planetFacts[pName];
+        document.getElementById('data-box').style.display = 'block';
+        document.getElementById('planet-name').innerText = pName.toUpperCase();
+        document.getElementById('val-mass').innerText = stats.mass;
+        document.getElementById('val-grav').innerText = stats.grav;
+        document.getElementById('val-dens').innerText = stats.dens;
+        document.getElementById('val-age').innerText = stats.age;
+        document.getElementById('val-moons').innerText = stats.actualMoonCount;
+        document.getElementById('moon-names').innerText = stats.majorMoons;
+        document.getElementById('planet-desc').innerText = stats.desc;
+    }
+});
+document.getElementById('reset-btn').onclick = () => {
+    selectedPlanet = null;
+    controls.target.set(0, 0, 0);
+    document.getElementById('data-box').style.display = 'none';
+};
     </script>
 </body>
 </html>
+  
