@@ -34,19 +34,19 @@
         <h1>ORBITAL WATCH : SOL-3D</h1>
         <p>SYSTEM: SOL | REGION: ORION ARM | GALAXY: MILKY WAY | STATUS: <span id="status-display" style="color: #ffaa00;">SCANNING</span></p>
     </div>
-
     <div id="control-panel" style="
-position:absolute;
-left:20px;
-top:90px;
-width:320px;
-background:rgba(0,0,0,0.55);
-border:1px solid #00f2ff;
-padding:15px;
-border-radius:10px;
-backdrop-filter: blur(10px);
-box-shadow:0 0 25px rgba(0,242,255,0.2);
-z-index:10;
+      position:absolute;
+      left:15px;
+      top:150px;
+      width:200px;
+      height:200px
+      background:rgba(0,0,0,0.55);
+      border:1px solid #00f2ff;
+      padding:15px;
+      border-radius:10px;
+      backdrop-filter: blur(10px);
+      box-shadow:0 0 25px rgba(0,242,255,0.2);
+      z-index:10;
 ">
 
 <h3 style="margin-top:0;color:#00f2ff;">TEMPORAL NAVIGATION</h3>
@@ -85,6 +85,7 @@ z-index:10;
     />
 </div>
     </div>
+
 
     <div id="data-box" class="data-box">
         <h3 id="planet-name" style="margin:0; color:#00f2ff; letter-spacing:2px;">---</h3>
@@ -293,7 +294,7 @@ z-index:10;
 };
 
         async function fetchPlanetPositions(dateString = null) {
-    statusDisplay.innerText = "SYNCING WITH SKYFIELD...";
+    
     try {
         let url = `/api/planet-positions`;
         if(dateString) url += `?date=${encodeURIComponent(dateString)}`;
@@ -317,12 +318,11 @@ z-index:10;
             planet.mesh.position.z = Math.sin(angle) * planet.orbitRadius;
         });
         
-        statusDisplay.innerText = liveTrackingEnabled ? "LIVE TRACKING" : "TEMPORAL JUMP SUCCESS";
-        statusDisplay.style.color = "#00ff88";
+        
+        
     } catch(err) {
         console.error('Planet fetch failed:', err);
-        statusDisplay.innerText = "API DISCONNECTED";
-        statusDisplay.style.color = "#ff4444";
+        
     }
 }
 
