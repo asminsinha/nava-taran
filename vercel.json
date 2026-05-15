@@ -6,12 +6,20 @@
       "use": "@vercel/node"
     },
     {
+      "src": "api/planet-positions.py",
+      "use": "@vercel/python"
+    },
+    {
       "src": "client/package.json",
       "use": "@vercel/static-build",
       "config": { "distDir": "build" }
     }
   ],
   "rewrites": [
+    {
+      "source": "/api/planet-positions",
+      "destination": "/api/planet-positions.py"
+    },
     {
       "source": "/api/(.*)",
       "destination": "/api/index.js"
