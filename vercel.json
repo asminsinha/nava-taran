@@ -10,9 +10,8 @@
       "use": "@vercel/python"
     },
     {
-      "src": "client/package.json",
-      "use": "@vercel/static-build",
-      "config": { "distDir": "build" }
+      "src": "index.html",
+      "use": "@vercel/static"
     }
   ],
   "rewrites": [
@@ -26,7 +25,7 @@
     },
     {
       "source": "/(.*)",
-      "destination": "/client/$1"
+      "destination": "/$1"
     }
   ]
 }
