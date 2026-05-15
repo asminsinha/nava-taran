@@ -387,6 +387,8 @@ window.addEventListener('click', (event) => {
         document.getElementById('val-moons').innerText = stats.actualMoonCount;
         document.getElementById('moon-names').innerText = stats.majorMoons;
         document.getElementById('planet-desc').innerText = stats.desc;
+        statusDisplay.innerText = "TRACKING";
+        statusDisplay.style.color = "#00ff88";
     }
 });
 document.getElementById('reset-btn').onclick = () => {
