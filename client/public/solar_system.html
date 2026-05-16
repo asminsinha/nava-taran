@@ -214,6 +214,7 @@ const textures = {
         const moonObjects = [];
         let simulationSpeed = 1;
         let currentSimulationDate = new Date();
+        const sunRotationSpeed = 0.005;
         let lastFetchTime = 0;
         let liveTrackingEnabled = true;
         let selectedPlanet = null;
@@ -309,7 +310,7 @@ function updatePlanetPositions() {
 
 
         function simulateOrbitalMotion(delta) {
-
+            sun.rotation.y += sunRotationSpeed * 0.01 * simulationSpeed * delta;
     planets.forEach(p => {
 
         p.orbitAngle += p.speed * 0.00008 * simulationSpeed * delta;
