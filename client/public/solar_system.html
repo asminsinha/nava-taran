@@ -161,15 +161,16 @@
 }
 
         const planetFacts = {
-            "Mercury": { mass: "3.28e23 kg", grav: "3.7 m/s²", dens: "5.42 g/cm³", age: "4.503B yrs", actualMoonCount: 0, majorMoons: "None", desc: "The smallest planet and closest to the Sun. It has a solid, cratered surface, much like Earth's moon." },
-            "Venus": { mass: "4.86e24 kg", grav: "8.87 m/s²", dens: "5.24 g/cm³", age: "4.503B yrs", actualMoonCount: 0, majorMoons: "None", desc: "Spinning in the opposite direction to most planets, Venus is the hottest world in our solar system." },
-            "Earth": { mass: "5.97e24 kg", grav: "9.81 m/s²", dens: "5.51 g/cm³", age: "4.543B yrs", actualMoonCount: 1, majorMoons: "The Moon", desc: "The only world known to support life. 71% of its surface is covered by ocean." },
-            "Mars": { mass: "6.39e23 kg", grav: "3.71 m/s²", dens: "3.93 g/cm³", age: "4.603B yrs", actualMoonCount: 2, majorMoons: "Phobos, Deimos", desc: "A dusty, cold, desert world with a very thin atmosphere. Home to volcano Olympus Mons." },
-            "Jupiter": { mass: "1.89e27 kg", grav: "24.79 m/s²", dens: "1.33 g/cm³", age: "4.603B yrs", actualMoonCount: 95, majorMoons: "Io, Europa, Ganymede, Callisto", desc: "Twice as massive as all the other planets combined. Its Great Red Spot is a centuries-old storm." },
-            "Saturn": { mass: "5.68e26 kg", grav: "10.44 m/s²", dens: "0.68 g/cm³", age: "4.503B yrs", actualMoonCount: 146, majorMoons: "Mimas, Enceladus, Tethys, Titan", desc: "Adorned with a dazzling, complex system of icy rings. It is a gas giant made mostly of hydrogen." },
-            "Uranus": { mass: "8.68e25 kg", grav: "8.69 m/s²", dens: "1.27 g/cm³", age: "4.503B yrs", actualMoonCount: 28, majorMoons: "Ariel, Titania, Oberon", desc: "An ice giant that rotates at a nearly 90-degree angle from the plane of its orbit." },
-            "Neptune": { mass: "1.02e26 kg", grav: "11.15 m/s²", dens: "1.63 g/cm³", age: "4.503B yrs", actualMoonCount: 16, majorMoons: "Proteus, Triton, Nereid", desc: "Dark, cold and whipped by supersonic winds. It was the first planet located through mathematical calculations." },
-            "Pluto": { mass: "1.30e22 kg", grav: "0.62 m/s²", dens: "1.85 g/cm³", age: "4.503B yrs", actualMoonCount: 5, majorMoons: "Charon", desc: "A dwarf planet in the Kuiper Belt with a complex surface of mountains, valleys, and plains." }
+            "Sun": {mass: "1.989e30 kg", grav: "274 m/s²", dens: "1.41 g/cm³", age: "4.603B yrs", actualMoonCount: "8 Planets", majorMoons: "Sol System", desc: "A nearly perfect sphere of hot plasma at the center of our solar system. The scaling factor used in this simulation renders the Sun at roughly 1/30th of its true proportional size relative to the planets to keep the system visible and clickable."},
+            "Mercury": { mass: "3.28e23 kg", grav: "3.7 m/s²", dens: "5.42 g/cm³", age: "4.503B yrs", actualMoonCount: 0, majorMoons: "None", desc: "The smallest planet and closest to the Sun. It has a solid, cratered surface, much like Earth's moon.[Scale Note: Magnified ~20x relative to orbit distance]." },
+            "Venus": { mass: "4.86e24 kg", grav: "8.87 m/s²", dens: "5.24 g/cm³", age: "4.503B yrs", actualMoonCount: 0, majorMoons: "None", desc: "Spinning in the opposite direction to most planets, Venus is the hottest world in our solar system.[Scale Note: Magnified ~20x relative to orbit distance]." },
+            "Earth": { mass: "5.97e24 kg", grav: "9.81 m/s²", dens: "5.51 g/cm³", age: "4.543B yrs", actualMoonCount: 1, majorMoons: "The Moon", desc: "The only world known to support life. 71% of its surface is covered by ocean.[Scale Note: Magnified ~20x relative to orbit distance]." },
+            "Mars": { mass: "6.39e23 kg", grav: "3.71 m/s²", dens: "3.93 g/cm³", age: "4.603B yrs", actualMoonCount: 2, majorMoons: "Phobos, Deimos", desc: "A dusty, cold, desert world with a very thin atmosphere. Home to volcano Olympus Mons.[Scale Note: Magnified ~20x relative to orbit distance]." },
+            "Jupiter": { mass: "1.89e27 kg", grav: "24.79 m/s²", dens: "1.33 g/cm³", age: "4.603B yrs", actualMoonCount: 95, majorMoons: "Io, Europa, Ganymede, Callisto", desc: "Twice as massive as all the other planets combined. Its Great Red Spot is a centuries-old storm.[Scale Note: Magnified ~20x relative to orbit distance]." },
+            "Saturn": { mass: "5.68e26 kg", grav: "10.44 m/s²", dens: "0.68 g/cm³", age: "4.503B yrs", actualMoonCount: 146, majorMoons: "Mimas, Enceladus, Tethys, Titan", desc: "Adorned with a dazzling, complex system of icy rings. It is a gas giant made mostly of hydrogen.[Scale Note: Magnified ~20x relative to orbit distance]." },
+            "Uranus": { mass: "8.68e25 kg", grav: "8.69 m/s²", dens: "1.27 g/cm³", age: "4.503B yrs", actualMoonCount: 28, majorMoons: "Ariel, Titania, Oberon", desc: "An ice giant that rotates at a nearly 90-degree angle from the plane of its orbit.[Scale Note: Magnified ~20x relative to orbit distance]." },
+            "Neptune": { mass: "1.02e26 kg", grav: "11.15 m/s²", dens: "1.63 g/cm³", age: "4.503B yrs", actualMoonCount: 16, majorMoons: "Proteus, Triton, Nereid", desc: "Dark, cold and whipped by supersonic winds. It was the first planet located through mathematical calculations.[Scale Note: Magnified ~20x relative to orbit distance]." },
+            "Pluto": { mass: "1.30e22 kg", grav: "0.62 m/s²", dens: "1.85 g/cm³", age: "4.503B yrs", actualMoonCount: 5, majorMoons: "Charon", desc: "A dwarf planet in the Kuiper Belt with a complex surface of mountains, valleys, and plains.[Scale Note: Magnified ~20x relative to orbit distance]." }
         };
 
 
@@ -225,6 +226,7 @@ const sun = new THREE.Mesh(
     new THREE.SphereGeometry(22, 64, 64), 
     new THREE.MeshBasicMaterial({ map: textures.Sun }) 
 );
+sun.userData = { name: "Sun" };
 scene.add(sun);
 
 solData.forEach((data) => {
@@ -285,7 +287,7 @@ solData.forEach((data) => {
 
         const sunLight = new THREE.PointLight(0xffffff, 800, 2000, 1.2);
         scene.add(sunLight);
-        scene.add(new THREE.AmbientLight(0xffffff, 0.1));
+        scene.add(new THREE.AmbientLight(0xffffff, 0.15));
         const starGeo = new THREE.BufferGeometry();
         const starPos = new Float32Array(30000);
         for(let i=0; i<30000; i++) starPos[i] = (Math.random() - 0.5) * 4500;
@@ -383,10 +385,11 @@ window.addEventListener('click', (event) => {
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
     mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
     raycaster.setFromCamera(mouse, camera);
-    const hits = raycaster.intersectObjects(planets.map(p => p.mesh));
+    const targetsToIntersect = [sun, ...planets.map(p => p.mesh)];
+    const hits = raycaster.intersectObjects(targetsToIntersect);
     if (hits.length > 0) {
         selectedPlanet = hits[0].object;
-        const pName = selectedPlanet.userData.name;
+        const pName = selectedPlanet.userData.name ? selectedPlanet.userData.name : "Sun";
         const stats = planetFacts[pName];
         document.getElementById('data-box').style.display = 'block';
         document.getElementById('planet-name').innerText = pName.toUpperCase();
@@ -394,6 +397,13 @@ window.addEventListener('click', (event) => {
         document.getElementById('val-grav').innerText = stats.grav;
         document.getElementById('val-dens').innerText = stats.dens;
         document.getElementById('val-age').innerText = stats.age;
+        if (pName === "Sun") {
+            document.querySelector('#data-box .data-grid div:nth-child(5) .data-label').innerHTML = "Satellites:";
+            document.querySelector('#moon-list-area .data-label').innerHTML = "System Core:";
+        } else {
+            document.querySelector('#data-box .data-grid div:nth-child(5) .data-label').innerHTML = "Total Moons:";
+            document.querySelector('#moon-list-area .data-label').innerHTML = "Major Moons:";
+        }
         document.getElementById('val-moons').innerText = stats.actualMoonCount;
         document.getElementById('moon-names').innerText = stats.majorMoons;
         document.getElementById('planet-desc').innerText = stats.desc;
