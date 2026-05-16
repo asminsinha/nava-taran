@@ -287,7 +287,7 @@ solData.forEach((data) => {
 
         const sunLight = new THREE.PointLight(0xffffff, 800, 2000, 1.2);
         scene.add(sunLight);
-        scene.add(new THREE.AmbientLight(0xffffff, 0.15));
+        scene.add(new THREE.AmbientLight(0xffffff, 0.2));
         const starGeo = new THREE.BufferGeometry();
         const starPos = new Float32Array(30000);
         for(let i=0; i<30000; i++) starPos[i] = (Math.random() - 0.5) * 4500;
