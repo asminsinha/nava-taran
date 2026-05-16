@@ -390,11 +390,14 @@ window.addEventListener('click', (event) => {
         statusDisplay.innerText = "TRACKING";
         statusDisplay.style.color = "#00ff88";
     }
+
 });
 document.getElementById('reset-btn').onclick = () => {
     selectedPlanet = null;
     controls.target.set(0, 0, 0);
     document.getElementById('data-box').style.display = 'none';
+    statusDisplay.innerText = "SCANNING";
+    statusDisplay.style.color = "#ffaa00";
 };
     </script>
 </body>
