@@ -331,8 +331,13 @@ solData.forEach((data) => {
         p.mesh.position.z = Math.sin(p.orbitAngle) * p.orbitRadius;
         
         if (p.name === "Earth") {
-            p.mesh.rotation.y -= 0.0116 * 0.01 * simulationSpeed * delta;
-        }else{p.mesh.rotation.y += p.rotationSpeed * 0.01 * simulationSpeed * delta;}
+            p.mesh.rotation.y += 0.0116 * 0.01 * simulationSpeed * delta;
+        }
+        else if (p.name === "Venus" || p.name === "Uranus") {
+            // RETROGRADE rebels: Spin them backwards (clockwise)
+            p.mesh.rotation.y -= p.rotationSpeed * 0.01 * simulationSpeed * delta;
+        }
+        else{p.mesh.rotation.y += p.rotationSpeed * 0.01 * simulationSpeed * delta;}
     });
 
             moonObjects.forEach(m => {
