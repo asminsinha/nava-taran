@@ -309,7 +309,7 @@ solData.forEach((data) => {
             const totalHours = hours + (minutes / 60);
 
             const timeAngle = (totalHours / 24) * Math.PI * 2;
-            const baseAlignment = Math.PI * 1.95; 
+            const baseAlignment = Math.PI * 2.1; 
             p.mesh.rotation.y = baseAlignment - timeAngle;
         }
     });
