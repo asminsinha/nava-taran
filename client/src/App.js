@@ -89,7 +89,12 @@ const TerraScan = () => {
 				}));
 
 				setHazards([...nasaEvents, ...seismicEvents]);
-
+                const combinedHazards = [...nasaEvents, ...seismicEvents];
+                await axios.post("http://localhost:5000/api/cache/terra-hazards", { 
+                    hazards: combinedHazards 
+                }, {
+                    headers: { 'Content-Type': 'application/json' }
+                });
 			} catch (e) { console.error("Data Uplink Failed", e); }
 		};
 		fetchGlobalData();

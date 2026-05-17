@@ -11,6 +11,8 @@ const NeuralLinkTelemetry = () => {
         battery: '100%',
         uptime: '00:00:00',
         purity: '100%',
+        nasaPurity: '100%',
+        terraPurity: '100%',
         variance: '0.0000σ',
         statusBadge: 'NOMINAL',
         anomaliesActive: 0,
@@ -59,6 +61,13 @@ try {
             const secs = String(elapsedSeconds % 60).padStart(2, '0');
             const uptimeString = `${hrs}:${mins}:${secs}`;
 
+            const disasterStatus = (backendData.terra_purity_percent !== undefined && backendData.terra_purity_percent < 90.0) 
+                ? 'OFF-SYNC' 
+                : 'SYNCHRONIZED';
+
+            const nasaStatus = (backendData.nasa_purity_percent !== undefined && backendData.nasa_purity_percent < 90.0) 
+                ? 'DECRYPTED' 
+                : 'ENCRYPTED';
   
             setStats(prev => ({
                 ...prev,
@@ -66,6 +75,8 @@ try {
                 battery: currentBatteryLevel,
                 uptime: uptimeString,
                 purity: (backendData.data_purity_percent !== undefined) ? `${backendData.data_purity_percent}%` : '100%',
+                nasaPurity: (backendData.nasa_purity_percent !== undefined) ? `${backendData.nasa_purity_percent}%` : '100%',
+                terraPurity: (backendData.terra_purity_percent !== undefined) ? `${backendData.terra_purity_percent}%` : '100%',
                 variance: (backendData.signal_variance_sigma !== undefined) ? `${backendData.signal_variance_sigma}σ` : '0.0100σ',
                 statusBadge: backendData.telemetry_status || 'NOMINAL',
                 anomaliesActive: backendData.anomaly_count || 0,
@@ -129,7 +140,7 @@ try {
 
     return (
         <div style={{ position: 'absolute', top: '10px', left: '10px', zIndex: 1000 }}>
-            {/* Toggle Switch node button */}
+            
             <button 
                 onClick={() => setIsOpen(!isOpen)}
                 style={{
@@ -173,7 +184,7 @@ try {
                         <div>SYSTEM LATENCY: <span style={{color: stats.latency > 700 ? '#ff3333' : '#00ff00', fontWeight: 'bold'}}>{stats.latency}ms</span></div>
                         <div>ACTIVE CORES: <span style={{color: '#fff'}}>{stats.cores} / {stats.cores}</span></div>
                         <div>DEVICE CHARGE: <span style={{color: '#fff'}}>{stats.battery}</span></div>
-                        <div>DATA PURITY: <span style={{color: stats.statusBadge === 'NOMINAL' ? '#00ff00' : '#ff3333', fontWeight: 'bold'}}>{stats.purity}</span></div>
+                        <div>ORBITAL DATA PURITY: <span style={{color: stats.statusBadge === 'NOMINAL' ? '#00ff00' : '#ff3333', fontWeight: 'bold'}}>{stats.purity}</span></div>
                         
                         <div style={{ marginTop: '3px' }}>
                             <span style={{ color: '#888', fontSize: '11px' }}>SIGNAL VARIANCE:</span> <span style={{color: '#fff', fontWeight: 'bold'}}>{stats.variance}</span>
@@ -191,12 +202,39 @@ try {
                         </div>
                     </div>
 
-                    {/* INTERACTIVE CORE MATRIX MONITOR OSCILLOSCOPE */}
                     <div style={{ margin: '10px 0', background: 'rgba(0,12,24,0.7)', border: '1px solid rgba(0,242,255,0.15)', position: 'relative', height: '40px' }}>
                         <canvas ref={canvasRef} width="230" height="40" style={{ display: 'block' }}></canvas>
                         <span style={{ position: 'absolute', top: '2px', left: '4px', fontSize: '7px', color: 'rgba(0,242,255,0.4)', letterSpacing: '0.5px' }}>CORE MATRIX</span>
                     </div>
-
+                    <div style={{ marginBottom: '10px', background: 'rgba(0, 242, 255, 0.03)', border: '1px dashed rgba(0, 242, 255, 0.2)', padding: '6px 8px', borderRadius: '2px' }}>
+                        <div style={{ color: '#888', fontSize: '9px', marginBottom: '4px', letterSpacing: '0.5px' }}>STREAM DATA INTEGRITY</div>
+                        
+                        <div style={{ display: 'flex', justifyContent: 'between', alignItems: 'center' }}>
+                            <span style={{ flexGrow: 1 }}>NASA EXOPLANET:</span>
+                            <span style={{ 
+                                color: parseFloat(stats.nasaPurity) < 90 ? '#ffaa00' : '#00ffaa', 
+                                background: 'rgba(0,0,0,0.4)', 
+                                padding: '0 4px', 
+                                border: '1px solid rgba(0,242,255,0.1)',
+                                borderRadius: '2px'
+                            }}>
+                                [{stats.nasaPurity}]
+                            </span>
+                        </div>
+                        
+                        <div style={{ display: 'flex', justifyContent: 'between', alignItems: 'center', marginTop: '2px' }}>
+                            <span style={{ flexGrow: 1 }}>TERRA HAZARD:</span>
+                            <span style={{ 
+                                color: parseFloat(stats.terraPurity) < 90 ? '#ff3333' : '#00ffaa', 
+                                background: 'rgba(0,0,0,0.4)', 
+                                padding: '0 4px', 
+                                border: '1px solid rgba(0,242,255,0.1)',
+                                borderRadius: '2px'
+                            }}>
+                                [{stats.terraPurity}]
+                            </span>
+                        </div>
+                    </div>
                     {/* PANEL B: GENUINE ROUTED COMMUNICATION UPLINKS */}
                     <div style={{ marginBottom: '10px' }}>
                         <div style={{ color: '#888', fontSize: '9px', marginBottom: '4px', letterSpacing: '0.5px' }}>COMMUNICATION UPLINKS</div>

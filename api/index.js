@@ -11,6 +11,8 @@ app.use(express.json());
 
 
 let latestSatelliteData = [];
+let latestExoplanetData = [];
+let latestTerraData = [];
 // SUPABASE 
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
@@ -115,13 +117,22 @@ app.get('/api/exoplanets', async (req, res) => {
 
         const url = `https://exoplanetarchive.ipac.caltech.edu/TAP/sync?query=${query}&format=json`;
         const response = await axios.get(url);
+        if (Array.isArray(response.data)) {
+            latestExoplanetData = response.data;
+        }
         res.json(response.data);
     } catch (error) {
         console.error("Exoplanet Archive Error:", error.message);
         res.status(500).json({ message: "Deep Space Uplink Failure" });
     }
 });
-
+app.post('/api/cache/terra-hazards', (req, res) => {
+    if (req.body && Array.isArray(req.body.hazards)) {
+        latestTerraData = req.body.hazards;
+        return res.sendStatus(200);
+    }
+    res.status(400).json({ error: "Invalid hazard stream format" });
+});
 app.get('/api/satellite-scan', async (req, res) => {
     const KEY = process.env.N2YO_API_KEY;
     const satIds = [44804, 51656, 54361, 41752, 45026];
@@ -169,14 +180,11 @@ app.get('/api/telemetry', async (req, res) => {
     let droppedPacketsCount = 0;
 
     try {
-        // ======================================================================
-        // 1. EXTRACT DATA DIRECTLY FROM THE GLOBAL CACHE LAYER
-        // ======================================================================
+
         if (latestSatelliteData && latestSatelliteData.length > 0) {
             latestSatelliteData.forEach(sat => {
                 const altitude = parseFloat(sat.alt);
-                
-                // CATCH METADATA ANOMALIES (Dead data/Zeros passing through cache)
+
                 if (altitude === 0 || isNaN(altitude)) {
                     droppedPacketsCount++;
                 } else {
@@ -184,8 +192,6 @@ app.get('/api/telemetry', async (req, res) => {
                 }
             });
 
-            // If some expected assets didn't make it into the last satellite scan payload,
-            // count them as missing/dropped stream packets.
             if (latestSatelliteData.length < 5) {
                 droppedPacketsCount += (5 - latestSatelliteData.length);
             }
@@ -195,9 +201,7 @@ app.get('/api/telemetry', async (req, res) => {
             orbitalAssetsStream = [420.2, 418.5, 421.9, 419.1, 422.4];
         }
 
-        // ======================================================================
-        // 2. NETWORK CONTEXT STATE VALIDATION
-        // ======================================================================
+
         if (orbitalAssetsStream.length === 0) {
             completeNetworkFailure = true;
             orbitalAssetsStream = [420.2, 418.5, 421.9, 419.1, 422.4];
@@ -205,9 +209,7 @@ app.get('/api/telemetry', async (req, res) => {
 
         const streamLen = orbitalAssetsStream.length;
 
-        // ======================================================================
-        // 3. STATISTICAL Z-SCORE ANALYSIS PIPELINE
-        // ======================================================================
+
         const signalMean = orbitalAssetsStream.reduce((acc, v) => acc + v, 0) / streamLen;
         const variance = orbitalAssetsStream.reduce((acc, v) => acc + Math.pow(v - signalMean, 2), 0) / streamLen;
         const stdDeviation = variance > 0 ? Math.sqrt(variance) : 0.001;
@@ -216,33 +218,81 @@ app.get('/api/telemetry', async (req, res) => {
         
         orbitalAssetsStream.forEach(assetReading => {
             const zScore = Math.abs(assetReading - signalMean) / stdDeviation;
-            // A Z-score threshold of 1.5 is far more mathematically accurate for tiny samples (N=5)
+            
             if (zScore > 1.5) { 
                 flaggedOutliersCount++;
             }
         });
 
-        // ======================================================================
-        // 4. MULTI-FACTOR PURITY MATRIX CALCULATION
-        // ======================================================================
         let calculatedPurity = 100.0 - (flaggedOutliersCount * 15.0) - (droppedPacketsCount * 20.0);
         
-        // Force absolute zero purity if the entire telemetry system failed over to default states
+        
         if (completeNetworkFailure) {
             calculatedPurity = 0.0;
         }
         
         const truePurity = Math.max(0.0, calculatedPurity);
 
-        // ======================================================================
-        // 5. EVALUATE FINAL STATUS STRINGS
-        // ======================================================================
+
+  
+        let nasaIntegrityPercent = 100.0;
+        let corruptedNasaRecords = 0;
+
+        if (latestExoplanetData && latestExoplanetData.length > 0) {
+            const scanLimit = Math.min(latestExoplanetData.length, 50);
+            let evaluatedFieldsCount = 0;
+
+            for (let i = 0; i < scanLimit; i++) {
+                const planet = latestExoplanetData[i];
+                // Confirm critical TAP fields exist and haven't dropped out as null or empty strings
+                if (!planet.pl_name || !planet.hostname || planet.pl_orbper === null || isNaN(parseFloat(planet.pl_orbper))) {
+                    corruptedNasaRecords++;
+                }
+                evaluatedFieldsCount++;
+            }
+            if (evaluatedFieldsCount > 0) {
+                nasaIntegrityPercent = 100.0 - ((corruptedNasaRecords / evaluatedFieldsCount) * 100.0);
+            }
+        } else {
+            nasaIntegrityPercent = 0.0; // Threat state: No dataset currently pulled through memory pipeline
+        }
+
+
+        let terraIntegrityPercent = 100.0;
+        let structuralTerraErrors = 0;
+
+        if (latestTerraData && latestTerraData.length > 0) {
+            const scanLimit = Math.min(latestTerraData.length, 20);
+            let checkCount = 0;
+
+            for (let i = 0; i < scanLimit; i++) {
+                const event = latestTerraData[i];
+                try {
+                    // Dive directly into the unique nested geometry structure used by NASA EONET
+                    const lon = parseFloat(event.geometry[0].coordinates[0]);
+                    const lat = parseFloat(event.geometry[0].coordinates[1]);
+
+                    // Test for data corruption or coordinate layout boundary errors
+                    if (isNaN(lon) || isNaN(lat) || Math.abs(lat) > 90 || Math.abs(lon) > 180 || !event.categories[0].title) {
+                        structuralTerraErrors++;
+                    }
+                } catch (structureError) {
+                    structuralTerraErrors++; // Catches cases where nested structures are broken or missing
+                }
+                checkCount++;
+            }
+            if (checkCount > 0) {
+                terraIntegrityPercent = 100.0 - ((structuralTerraErrors / checkCount) * 100.0);
+            }
+        } else {
+            terraIntegrityPercent = 0.0; 
+        }
+
+
+
+        
         const statusString = (truePurity >= 85.0 && droppedPacketsCount < 2) ? "NOMINAL" : "ABERRATION_DETECTED";
         const satTrackerStatus = statusString === "NOMINAL" ? "STABLE" : "CORRUPTED_STREAM_ISOLATED";
-
-        // ======================================================================
-        // 6. SUPABASE HANDSHAKE PING
-        // ======================================================================
         let supabaseStatus = "BRIDGE_DISRUPTED";
         try {
             const dbPing = await axios.get(`${supabaseUrl}/rest/v1/`, {
@@ -260,7 +310,6 @@ app.get('/api/telemetry', async (req, res) => {
             }
         }
 
-        // Return the fully secure parameters matrix directly back to React HUD
         res.status(200).json({
             signal_variance_sigma: parseFloat(stdDeviation.toFixed(4)),
             data_purity_percent: parseFloat(truePurity.toFixed(1)),
