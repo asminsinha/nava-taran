@@ -160,4 +160,110 @@ app.get('/api/satellite-scan', async (req, res) => {
     }
 });
 
+app.get('/api/telemetry', async (req, res) => {
+    const KEY = process.env.N2YO_API_KEY;
+    const satIds = [44804, 51656, 54361, 41752, 45026];
+    
+    let orbitalAssetsStream = [];
+    let completeNetworkFailure = false;
+    let droppedPacketsCount = 0;
+
+    try {
+        // 1. GENUINE ORBITAL ASSET SCANNING LOOP
+        for (const id of satIds) {
+            try {
+                const url = `https://api.n2yo.com/rest/v1/satellite/positions/${id}/20.59/78.96/0/1/&apiKey=${KEY}`;
+                const r = await axios.get(url, { timeout: 1800 }); // Strict timeout prevents API lagging
+                
+                if (r.data && r.data.positions && r.data.positions[0]) {
+                    const altitude = parseFloat(r.data.positions[0].sataltitude);
+                    
+                    // CATCH METADATA ANOMALIES (Dead data/Zeros passing through API)
+                    if (altitude === 0 || isNaN(altitude)) {
+                        droppedPacketsCount++;
+                    } else {
+                        orbitalAssetsStream.push(altitude);
+                    }
+                } else {
+                    droppedPacketsCount++; // Missing telemetry positions block
+                }
+            } catch (e) {
+                droppedPacketsCount++; // Real network packet timeout or fetch drop encountered
+            }
+        }
+
+        // 2. NETWORK CONTEXT STATE VALIDATION
+        if (orbitalAssetsStream.length === 0) {
+            completeNetworkFailure = true;
+            // Static hard fallback to prevent runtime crashes, but flagged as fully compromised
+            orbitalAssetsStream = [420.2, 418.5, 421.9, 419.1, 422.4];
+        }
+
+        const streamLen = orbitalAssetsStream.length;
+
+        // 3. STATISTICAL Z-SCORE ANALYSIS PIPELINE
+        const signalMean = orbitalAssetsStream.reduce((acc, v) => acc + v, 0) / streamLen;
+        const variance = orbitalAssetsStream.reduce((acc, v) => acc + Math.pow(v - signalMean, 2), 0) / streamLen;
+        const stdDeviation = variance > 0 ? Math.sqrt(variance) : 0.001;
+
+        let flaggedOutliersCount = 0;
+        
+        orbitalAssetsStream.forEach(assetReading => {
+            const zScore = Math.abs(assetReading - signalMean) / stdDeviation;
+            // A Z-score threshold of 1.5 is far more mathematically accurate for tiny samples (N=5)
+            if (zScore > 1.5) { 
+                flaggedOutliersCount++;
+            }
+        });
+
+        // 4. MULTI-FACTOR PURITY MATRIX CALCULATION
+        // Purity is now impacted by anomalies AND dropped/missing satellite data streams
+        let calculatedPurity = 100.0 - (flaggedOutliersCount * 15.0) - (droppedPacketsCount * 20.0);
+        
+        // Force absolute zero purity if the entire telemetry system failed over to default states
+        if (completeNetworkFailure) {
+            calculatedPurity = 0.0;
+        }
+        
+        const truePurity = Math.max(0.0, calculatedPurity);
+
+        // 5. EVALUATE FINAL STATUS STRINGS
+        // Aberration trips if purity tanks OR if we have dropped too many active satellite streams
+        const statusString = (truePurity >= 85.0 && droppedPacketsCount < 2) ? "NOMINAL" : "ABERRATION_DETECTED";
+        const satTrackerStatus = statusString === "NOMINAL" ? "STABLE" : "CORRUPTED_STREAM_ISOLATED";
+
+        // 6. SUPABASE HANDSHAKE PING
+        let supabaseStatus = "BRIDGE_DISRUPTED";
+        try {
+            const dbPing = await axios.get(`${supabaseUrl}/rest/v1/`, {
+                headers: { 'apikey': supabaseKey },
+                timeout: 1500
+            });
+            if (dbPing.status === 200 || dbPing.status === 401) {
+                supabaseStatus = "CONNECTED";
+            }
+        } catch (dbErr) {
+            if (dbErr.response && dbErr.response.status === 401) {
+                supabaseStatus = "CONNECTED";
+            } else {
+                supabaseStatus = "BRIDGE_DISRUPTED";
+            }
+        }
+
+        // Return the fully secure parameters matrix directly back to React HUD
+        res.status(200).json({
+            signal_variance_sigma: parseFloat(stdDeviation.toFixed(4)),
+            data_purity_percent: parseFloat(truePurity.toFixed(1)),
+            telemetry_status: statusString,
+            sat_tracker: satTrackerStatus,
+            supabase_db: supabaseStatus,
+            anomaly_count: flaggedOutliersCount + droppedPacketsCount // Combines noise and total dropouts
+        });
+
+    } catch (criticalErr) {
+        console.error("Telemetry Processing failure:", criticalErr.message);
+        res.status(500).json({ error: "Internal System Anomaly Detected" });
+    }
+});
+
 module.exports = app;
