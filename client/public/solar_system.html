@@ -296,7 +296,7 @@ solData.forEach((data) => {
 
         
 
-function updatePlanetPositions() {
+        function updatePlanetPositions() {
     planets.forEach(p => {
         const res = calculatePlanetPosition(p.name, currentSimulationDate);
         p.orbitAngle = res.angle;
@@ -307,8 +307,13 @@ function updatePlanetPositions() {
 }
 
         function simulateOrbitalMotion(delta) {
+            const millisecondsPerSecond = 1000;
+            const frameTargetRatio = 60;
+            const simulationTimeStep = (delta / frameTargetRatio) * simulationSpeed * millisecondsPerSecond;
+    
+            currentSimulationDate = new Date(currentSimulationDate.getTime() + simulationTimeStep);
             sun.rotation.y += sunRotationSpeed * 0.01 * simulationSpeed * delta;
-    planets.forEach(p => {
+            planets.forEach(p => {
 
         p.orbitAngle += p.speed * 0.00008 * simulationSpeed * delta;
 
@@ -326,8 +331,8 @@ function updatePlanetPositions() {
         }else{p.mesh.rotation.y += p.rotationSpeed * 0.01 * simulationSpeed * delta;}
     });
 
-    moonObjects.forEach(m => {
-        m.group.rotation.y += m.speed * 0.01 * simulationSpeed * delta;
+            moonObjects.forEach(m => {
+            m.group.rotation.y += m.speed * 0.01 * simulationSpeed * delta;
     });
 }
 
