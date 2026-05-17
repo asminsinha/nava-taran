@@ -30,18 +30,26 @@ const NeuralLinkTelemetry = () => {
             const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
             
             // 1. Calculate genuine network latency
-            const t0 = performance.now();
-            let backendData = {};
             
-            try {
-                
-                const res = await fetch(`/api/telemetry?t=${Date.now()}`);
-                backendData = await res.json();
-            } catch (err) {
-                console.error("Telemetry server link disrupted:", err);
-            }
-            const measuredLatency = Math.round(performance.now() - t0);
+            let backendData = {};
+            let measuredLatency = 0;
+            
+            const latencyStart = performance.now();
+try {
+    // Ping a zero-overhead, non-blocking path or edge function
+    await fetch('/api/auth/login', { method: 'OPTIONS' }); 
+    measuredLatency = Math.round(performance.now() - latencyStart);
+} catch (e) {
+    measuredLatency = 500; // Fallback gate if connection is entirely severed
+}
 
+// 2. Fetch the heavier structural metrics payload independently
+try {
+    const res = await fetch(`/api/telemetry?t=${Date.now()}`);
+    backendData = await res.json();
+} catch (err) {
+    console.error("Telemetry server link disrupted:", err);
+}
             // 2. Extract genuine system battery metrics
             let currentBatteryLevel = '100%';
             if (navigator.getBattery) {
@@ -212,6 +220,22 @@ const NeuralLinkTelemetry = () => {
                     <div style={{ marginTop: '8px', fontSize: '10px', color: '#fff', borderTop: '1px solid #00ffff22', paddingTop: '6px' }}>
                         MISSION UPTIME: <span style={{fontFamily: 'monospace', fontWeight: 'bold', color: '#00ffff'}}>{stats.uptime}</span>
                     </div>
+                        <div style={{ height: '2px', background: '#111', marginTop: '10px', position: 'relative', overflow: 'hidden' }}>
+        <div style={{ 
+            position: 'absolute', 
+            height: '100%', 
+            width: '40%', 
+            background: 'linear-gradient(90deg, transparent, #00ffff, transparent)', 
+            animation: 'scan-line 1.5s infinite linear' 
+        }}></div>
+    </div>
+                    <style>{`
+                        @keyframes scan-line {
+                            0% { left: 0; }
+                            100% { left: 100%; }
+                        }
+                    `}</style>
+
                 </div>
             )}
         </div>
