@@ -9,9 +9,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.get('/api/heartbeat', (req, res) => {
-    res.sendStatus(200);
-});
 
 let latestSatelliteData = [];
 // SUPABASE 

@@ -7,7 +7,6 @@ const NeuralLinkTelemetry = () => {
 
     const [stats, setStats] = useState({
         latency: 0,
-        rawNetworkLatency: 0,
         cores: navigator.hardwareConcurrency || 12,
         battery: '100%',
         uptime: '00:00:00',
@@ -26,41 +25,27 @@ const NeuralLinkTelemetry = () => {
     useEffect(() => {
         const startTime = Date.now();
 
-        // Core background data pipeline polling handler
         const fetchLiveTelemetryMatrix = async () => {
             const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
             
-            const networkStart = performance.now();
-            let rawNetTime = 0;
-try {
-    await fetch('/api/heartbeat', { method: 'GET' });
-    rawNetTime = Math.round(performance.now() - networkStart);
-} catch (e) {
-    rawNetTime = 0;
-}
             
-
-
             let backendData = {};
             let measuredLatency = 0;
             
             const latencyStart = performance.now();
 try {
-    // Ping a zero-overhead, non-blocking path or edge function
     await fetch('/api/auth/login', { method: 'OPTIONS' }); 
     measuredLatency = Math.round(performance.now() - latencyStart);
 } catch (e) {
-    measuredLatency = 500; // Fallback gate if connection is entirely severed
+    measuredLatency = 500; 
 }
 
-// 2. Fetch the heavier structural metrics payload independently
 try {
     const res = await fetch(`/api/telemetry?t=${Date.now()}`);
     backendData = await res.json();
 } catch (err) {
     console.error("Telemetry server link disrupted:", err);
 }
-            // 2. Extract genuine system battery metrics
             let currentBatteryLevel = '100%';
             if (navigator.getBattery) {
                 try {
@@ -69,17 +54,15 @@ try {
                 } catch (e) {}
             }
 
-            // 3. Format mission running stopwatch time
             const hrs = String(Math.floor(elapsedSeconds / 3600)).padStart(2, '0');
             const mins = String(Math.floor((elapsedSeconds % 3600) / 60)).padStart(2, '0');
             const secs = String(elapsedSeconds % 60).padStart(2, '0');
             const uptimeString = `${hrs}:${mins}:${secs}`;
 
-            // 4. Update core react visual metrics state package
+  
             setStats(prev => ({
                 ...prev,
                 latency: measuredLatency,
-                rawNetworkLatency: rawNetTime,
                 battery: currentBatteryLevel,
                 uptime: uptimeString,
                 purity: (backendData.data_purity_percent !== undefined) ? `${backendData.data_purity_percent}%` : '100%',
@@ -89,20 +72,18 @@ try {
                 uplinks: {
                     satellite: backendData.sat_tracker || 'STABLE',
                     supabase: backendData.supabase_db || 'CONNECTED',
-                    disaster: measuredLatency > 400 ? 'OFF-SYNC' : 'SYNCHRONIZED',
-                    nasa: measuredLatency > 400 ? 'DECRYPTED' : 'ENCRYPTED'
+                    disaster: measuredLatency > 700 ? 'OFF-SYNC' : 'SYNCHRONIZED',
+                    nasa: measuredLatency > 700 ? 'DECRYPTED' : 'ENCRYPTED'
                 }
             }));
         };
 
-        // Fire handlers
         fetchLiveTelemetryMatrix();
         const telemetryInterval = setInterval(fetchLiveTelemetryMatrix, 4000);
 
         return () => clearInterval(telemetryInterval);
     }, []);
 
-    // 5. JARVIS OSCILLOSCOPE REAL-TIME CANVAS LOOP
     useEffect(() => {
         if (!isOpen || !canvasRef.current) return;
 
@@ -112,9 +93,9 @@ try {
 
         const renderOscilloscopeFrame = () => {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            wavePhase.current += 0.12; // Wave frequency progression step speed
+            wavePhase.current += 0.12; 
 
-            // Amplify visual canvas disturbance if live statistical glitches are flagged
+           
             const baseWaveHeight = stats.anomaliesActive > 0 ? 15 : 6;
             const lineJitterNoise = stats.anomaliesActive > 0 ? 4 : 0;
 
@@ -189,18 +170,7 @@ try {
                     {/* PANEL A: REAL SYSTEM HARDWARE DIAGNOSTICS */}
                     <div style={{ marginBottom: '10px', lineY: '1.5' }}>
                         <div style={{ color: '#888', fontSize: '9px', marginBottom: '4px', letterSpacing: '0.5px' }}>HARDWARE TELEMETRY</div>
-                        <div className="flex justify-between items-center text-sm">
-        <span className="text-gray-400 font-mono">SYSTEM COMPUTATION LATENCY:</span>
-        <span className={`font-mono font-bold ${stats.latency > 400 ? '#ff3333' : '#00ff00'}`}>
-            {stats.latency}ms
-        </span>
-</div>
-<div className="flex justify-between items-center text-sm">
-        <span className="text-gray-400 font-mono">RAW NETWORK LATENCY:</span>
-        <span className="font-mono font-bold text-green-400">
-            {stats.rawNetworkLatency}ms
-        </span>
-</div>
+                        <div>SYSTEM LATENCY: <span style={{color: stats.latency > 700 ? '#ff3333' : '#00ff00', fontWeight: 'bold'}}>{stats.latency}ms</span></div>
                         <div>ACTIVE CORES: <span style={{color: '#fff'}}>{stats.cores} / {stats.cores}</span></div>
                         <div>DEVICE CHARGE: <span style={{color: '#fff'}}>{stats.battery}</span></div>
                         <div>DATA PURITY: <span style={{color: stats.statusBadge === 'NOMINAL' ? '#00ff00' : '#ff3333', fontWeight: 'bold'}}>{stats.purity}</span></div>
