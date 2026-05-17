@@ -219,7 +219,6 @@ const textures = {
         let lastFetchTime = 0;
         let liveTrackingEnabled = true;
         let selectedPlanet = null;
-        const EARTH_TEXTURE_Y_OFFSET = Math.PI * 0.95;
         const statusDisplay = document.getElementById('status-display');
 
 
@@ -246,9 +245,6 @@ solData.forEach((data) => {
     pMesh.rotation.z = data.axialTilt;
     pMesh.position.x = data.dist;
     pMesh.userData = { name: data.name };
-    if (data.name === "Earth") {
-        pMesh.rotation.y = EARTH_TEXTURE_Y_OFFSET;
-    }
     orbitGroup.add(pMesh);
 
     if(data.hasRings) {
@@ -310,6 +306,23 @@ function updatePlanetPositions() {
         p.orbitAngle = res.angle;
         p.mesh.position.x = Math.cos(p.orbitAngle) * p.orbitRadius;
         p.mesh.position.z = Math.sin(p.orbitAngle) * p.orbitRadius;
+        if (p.name === "Earth") {
+            // Get the current local hour and minute from the simulation date
+            const hours = currentSimulationDate.getHours();
+            const minutes = currentSimulationDate.getMinutes();
+            const totalHours = hours + (minutes / 60);
+
+            // Convert 24 hours into a 0 to 2*PI radian circle
+            // 12:00 (Noon) should face the sun, 00:00 (Midnight) faces away
+            const timeAngle = (totalHours / 24) * Math.PI * 2;
+
+            // Apply the texture alignment correction so India faces the sun at noon
+            // (You can change 1.5 to tweak the exact alignment if needed)
+            const baseAlignment = Math.PI * 1.5; 
+
+            // Combine them to set the starting rotation
+            p.mesh.rotation.y = baseAlignment - timeAngle;
+        }
     });
 
 }
