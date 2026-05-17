@@ -184,7 +184,6 @@ try {
                         <div>SYSTEM LATENCY: <span style={{color: stats.latency > 700 ? '#ff3333' : '#00ff00', fontWeight: 'bold'}}>{stats.latency}ms</span></div>
                         <div>ACTIVE CORES: <span style={{color: '#fff'}}>{stats.cores} / {stats.cores}</span></div>
                         <div>DEVICE CHARGE: <span style={{color: '#fff'}}>{stats.battery}</span></div>
-                        <div>ORBITAL DATA PURITY: <span style={{color: stats.statusBadge === 'NOMINAL' ? '#00ff00' : '#ff3333', fontWeight: 'bold'}}>{stats.purity}</span></div>
                         
                         <div style={{ marginTop: '3px' }}>
                             <span style={{ color: '#888', fontSize: '11px' }}>SIGNAL VARIANCE:</span> <span style={{color: '#fff', fontWeight: 'bold'}}>{stats.variance}</span>
@@ -201,14 +200,21 @@ try {
                             </span>
                         </div>
                     </div>
-
-                    <div style={{ margin: '10px 0', background: 'rgba(0,12,24,0.7)', border: '1px solid rgba(0,242,255,0.15)', position: 'relative', height: '40px' }}>
-                        <canvas ref={canvasRef} width="230" height="40" style={{ display: 'block' }}></canvas>
-                        <span style={{ position: 'absolute', top: '2px', left: '4px', fontSize: '7px', color: 'rgba(0,242,255,0.4)', letterSpacing: '0.5px' }}>CORE MATRIX</span>
-                    </div>
                     <div style={{ marginBottom: '10px', background: 'rgba(0, 242, 255, 0.03)', border: '1px dashed rgba(0, 242, 255, 0.2)', padding: '6px 8px', borderRadius: '2px' }}>
                         <div style={{ color: '#888', fontSize: '9px', marginBottom: '4px', letterSpacing: '0.5px' }}>STREAM DATA INTEGRITY</div>
-                        
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3px' }}>
+                            <span style={{ flexGrow: 1 }}>ORBITAL PURITY:</span>
+                            <span style={{ 
+                                color: parseFloat(stats.purity) < 90 ? '#ff3333' : '#00ffaa', 
+                                background: 'rgba(0,0,0,0.4)', 
+                                padding: '0 4px', 
+                                border: '1px solid rgba(0,242,255,0.1)',
+                                borderRadius: '2px',
+                                fontWeight: 'bold'
+                            }}>
+                                [{stats.purity}]
+                            </span>
+                        </div>
                         <div style={{ display: 'flex', justifyContent: 'between', alignItems: 'center' }}>
                             <span style={{ flexGrow: 1 }}>NASA EXOPLANET:</span>
                             <span style={{ 
@@ -235,6 +241,13 @@ try {
                             </span>
                         </div>
                     </div>
+
+                    {/*CORE MATRIX*/}
+                    <div style={{ margin: '10px 0', background: 'rgba(0,12,24,0.7)', border: '1px solid rgba(0,242,255,0.15)', position: 'relative', height: '40px' }}>
+                        <canvas ref={canvasRef} width="230" height="40" style={{ display: 'block' }}></canvas>
+                        <span style={{ position: 'absolute', top: '2px', left: '4px', fontSize: '7px', color: 'rgba(0,242,255,0.4)', letterSpacing: '0.5px' }}>STREAM PACKET FREQUENCY</span>
+                    </div>
+
                     {/* PANEL B: GENUINE ROUTED COMMUNICATION UPLINKS */}
                     <div style={{ marginBottom: '10px' }}>
                         <div style={{ color: '#888', fontSize: '9px', marginBottom: '4px', letterSpacing: '0.5px' }}>COMMUNICATION UPLINKS</div>
