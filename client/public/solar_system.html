@@ -227,7 +227,7 @@ scene.add(sun);
 
 solData.forEach((data) => {
     const orbitGroup = new THREE.Group();
-    orbitGroup.rotation.y = Math.random() * Math.PI * 2;
+    orbitGroup.rotation.y = 0;
     scene.add(orbitGroup);
 
     const ring = new THREE.Mesh(new THREE.RingGeometry(data.dist - 0.6, data.dist + 0.6, 256), new THREE.MeshBasicMaterial({ color: 0x00f2ff, side: THREE.DoubleSide, transparent: true, opacity: 0.3 }));
@@ -312,13 +312,8 @@ function updatePlanetPositions() {
 
         p.orbitAngle += p.speed * 0.00008 * simulationSpeed * delta;
 
-        const radius = Math.sqrt(
-            (p.mesh.position.x * p.mesh.position.x) +
-            (p.mesh.position.z * p.mesh.position.z)
-        );
-
-        p.mesh.position.x = Math.cos(p.orbitAngle) * radius;
-        p.mesh.position.z = Math.sin(p.orbitAngle) * radius;
+        p.mesh.position.x = Math.cos(p.orbitAngle) * p.orbitRadius;
+        p.mesh.position.z = Math.sin(p.orbitAngle) * p.orbitRadius;
         
         if (p.name === "Earth") {
             const hours = currentSimulationDate.getHours();
@@ -327,8 +322,6 @@ function updatePlanetPositions() {
             
             const timeAngle = (totalHours / 24) * Math.PI * 2;
             const baseAlignment = Math.PI * 1.95; 
-            
-            // This cleanly rotates the texture relative to the current simulation time
             p.mesh.rotation.y = baseAlignment - timeAngle;
         }else{p.mesh.rotation.y += p.rotationSpeed * 0.01 * simulationSpeed * delta;}
     });
