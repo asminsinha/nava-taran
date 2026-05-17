@@ -83,8 +83,8 @@ try {
                 uplinks: {
                     satellite: backendData.sat_tracker || 'STABLE',
                     supabase: backendData.supabase_db || 'CONNECTED',
-                    disaster: measuredLatency > 700 ? 'OFF-SYNC' : 'SYNCHRONIZED',
-                    nasa: measuredLatency > 700 ? 'DECRYPTED' : 'ENCRYPTED'
+                    disaster: disasterStatus, 
+                    nasa: nasaStatus 
                 }
             }));
         };
@@ -243,8 +243,8 @@ try {
                         {/* GENUINE SUPABASE LIVE BRIDGE CONNECTION FRAME */}
                         <div>SUPABASE DB: <span style={{color: stats.uplinks.supabase === 'CONNECTED' ? '#00ff00' : '#ff3333', fontWeight: 'bold'}}>{stats.uplinks.supabase}</span></div>
                         
-                        <div>TERRA-DISASTER: <span style={{color: '#00ff00'}}>{stats.uplinks.disaster}</span></div>
-                        <div>NASA-DATASET: <span style={{color: '#00ff00'}}>{stats.uplinks.nasa}</span></div>
+                        <div>TERRA-DISASTER: <span style={{color: stats.uplinks.disaster === 'SYNCHRONIZED' ? '#00ff00' : '#ff3333', fontWeight: 'bold'}}>{stats.uplinks.disaster}</span></div>
+                        <div>NASA-DATASET: <span style={{color: stats.uplinks.nasa === 'ENCRYPTED' ? '#00ff00' : '#ffaa00', fontWeight: 'bold'}}>{stats.uplinks.nasa}</span></div>
                     </div>
 
                     <div style={{ marginTop: '8px', fontSize: '10px', color: '#fff', borderTop: '1px solid #00ffff22', paddingTop: '6px' }}>
