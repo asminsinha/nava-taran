@@ -85,7 +85,6 @@
 </div>
     </div>
 
-
     <div id="data-box" class="data-box">
         <h3 id="planet-name" style="margin:0; color:#00f2ff; letter-spacing:2px;">---</h3>
         <div class="data-grid">
@@ -149,7 +148,6 @@
     const x_plane = a * (Math.cos(E) - e);
     const y_plane = a * Math.sqrt(1 - e * e) * Math.sin(E);
 
-
     const cosNode = Math.cos(longNode);
     const sinNode = Math.sin(longNode);
     const cosW_I = Math.cos(w);
@@ -172,7 +170,6 @@
             "Neptune": { mass: "1.02e26 kg", grav: "11.15 m/s²", dens: "1.63 g/cm³", age: "4.503B yrs", actualMoonCount: 16, majorMoons: "Proteus, Triton, Nereid", desc: "Dark, cold and whipped by supersonic winds. It was the first planet located through mathematical calculations.[Scale Note: Magnified ~20x relative to orbit distance]." },
             "Pluto": { mass: "1.30e22 kg", grav: "0.62 m/s²", dens: "1.85 g/cm³", age: "4.503B yrs", actualMoonCount: 5, majorMoons: "Charon", desc: "A dwarf planet in the Kuiper Belt with a complex surface of mountains, valleys, and plains.[Scale Note: Magnified ~20x relative to orbit distance]." }
         };
-
 
 const TEXTURE_PATH = './planet/'; 
 const textureLoader = new THREE.TextureLoader();
@@ -220,7 +217,6 @@ const textures = {
         let liveTrackingEnabled = true;
         let selectedPlanet = null;
         const statusDisplay = document.getElementById('status-display');
-
 
 const sun = new THREE.Mesh(
     new THREE.SphereGeometry(22, 64, 64), 
@@ -306,27 +302,9 @@ function updatePlanetPositions() {
         p.orbitAngle = res.angle;
         p.mesh.position.x = Math.cos(p.orbitAngle) * p.orbitRadius;
         p.mesh.position.z = Math.sin(p.orbitAngle) * p.orbitRadius;
-        if (p.name === "Earth") {
-            // Get the current local hour and minute from the simulation date
-            const hours = currentSimulationDate.getHours();
-            const minutes = currentSimulationDate.getMinutes();
-            const totalHours = hours + (minutes / 60);
-
-            // Convert 24 hours into a 0 to 2*PI radian circle
-            // 12:00 (Noon) should face the sun, 00:00 (Midnight) faces away
-            const timeAngle = (totalHours / 24) * Math.PI * 2;
-
-            // Apply the texture alignment correction so India faces the sun at noon
-            // (You can change 1.5 to tweak the exact alignment if needed)
-            const baseAlignment = Math.PI * 1.95; 
-
-            // Combine them to set the starting rotation
-            p.mesh.rotation.y = baseAlignment - timeAngle;
-        }
     });
 
 }
-
 
         function simulateOrbitalMotion(delta) {
             sun.rotation.y += sunRotationSpeed * 0.01 * simulationSpeed * delta;
