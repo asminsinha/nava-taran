@@ -219,6 +219,7 @@ const textures = {
         let lastFetchTime = 0;
         let liveTrackingEnabled = true;
         let selectedPlanet = null;
+        const EARTH_TEXTURE_Y_OFFSET = Math.PI * 0.95;
         const statusDisplay = document.getElementById('status-display');
 
 
@@ -245,6 +246,9 @@ solData.forEach((data) => {
     pMesh.rotation.z = data.axialTilt;
     pMesh.position.x = data.dist;
     pMesh.userData = { name: data.name };
+    if (data.name === "Earth") {
+        pMesh.rotation.y = EARTH_TEXTURE_Y_OFFSET;
+    }
     orbitGroup.add(pMesh);
 
     if(data.hasRings) {
