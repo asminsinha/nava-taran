@@ -7,6 +7,7 @@ const NeuralLinkTelemetry = () => {
 
     const [stats, setStats] = useState({
         latency: 0,
+        rawNetworkLatency: 0,
         cores: navigator.hardwareConcurrency || 12,
         battery: '100%',
         uptime: '00:00:00',
@@ -29,8 +30,17 @@ const NeuralLinkTelemetry = () => {
         const fetchLiveTelemetryMatrix = async () => {
             const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
             
-            // 1. Calculate genuine network latency
+            const networkStart = performance.now();
+            let rawNetTime = 0;
+try {
+    await fetch('/api/heartbeat', { method: 'GET' });
+    rawNetTime = Math.round(performance.now() - networkStart);
+} catch (e) {
+    rawNetTime = 0;
+}
             
+
+
             let backendData = {};
             let measuredLatency = 0;
             
@@ -69,6 +79,7 @@ try {
             setStats(prev => ({
                 ...prev,
                 latency: measuredLatency,
+                rawNetworkLatency: rawNetTime,
                 battery: currentBatteryLevel,
                 uptime: uptimeString,
                 purity: (backendData.data_purity_percent !== undefined) ? `${backendData.data_purity_percent}%` : '100%',
@@ -178,7 +189,18 @@ try {
                     {/* PANEL A: REAL SYSTEM HARDWARE DIAGNOSTICS */}
                     <div style={{ marginBottom: '10px', lineY: '1.5' }}>
                         <div style={{ color: '#888', fontSize: '9px', marginBottom: '4px', letterSpacing: '0.5px' }}>HARDWARE TELEMETRY</div>
-                        <div>UPLINK LATENCY: <span style={{color: stats.latency > 150 ? '#ff3333' : '#00ff00', fontWeight: 'bold'}}>{stats.latency}ms</span></div>
+                        <div className="flex justify-between items-center text-sm">
+        <span className="text-gray-400 font-mono">SYSTEM COMPUTATION LATENCY:</span>
+        <span className={`font-mono font-bold ${stats.latency > 400 ? '#ff3333' : '#00ff00'}`}>
+            {stats.latency}ms
+        </span>
+</div>
+<div className="flex justify-between items-center text-sm">
+        <span className="text-gray-400 font-mono">RAW NETWORK LATENCY:</span>
+        <span className="font-mono font-bold text-green-400">
+            {stats.rawNetworkLatency}ms
+        </span>
+</div>
                         <div>ACTIVE CORES: <span style={{color: '#fff'}}>{stats.cores} / {stats.cores}</span></div>
                         <div>DEVICE CHARGE: <span style={{color: '#fff'}}>{stats.battery}</span></div>
                         <div>DATA PURITY: <span style={{color: stats.statusBadge === 'NOMINAL' ? '#00ff00' : '#ff3333', fontWeight: 'bold'}}>{stats.purity}</span></div>

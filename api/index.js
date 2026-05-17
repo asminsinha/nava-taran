@@ -8,6 +8,11 @@ require('dotenv').config();
 const app = express();
 app.use(cors());
 app.use(express.json());
+
+app.get('/api/heartbeat', (req, res) => {
+    res.sendStatus(200);
+});
+
 let latestSatelliteData = [];
 // SUPABASE 
 const supabaseUrl = process.env.SUPABASE_URL;
