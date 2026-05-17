@@ -302,6 +302,16 @@ solData.forEach((data) => {
         p.orbitAngle = res.angle;
         p.mesh.position.x = Math.cos(p.orbitAngle) * p.orbitRadius;
         p.mesh.position.z = Math.sin(p.orbitAngle) * p.orbitRadius;
+        
+        if (p.name === "Earth") {
+            const hours = currentSimulationDate.getHours();
+            const minutes = currentSimulationDate.getMinutes();
+            const totalHours = hours + (minutes / 60);
+
+            const timeAngle = (totalHours / 24) * Math.PI * 2;
+            const baseAlignment = Math.PI * 1.5; 
+            p.mesh.rotation.y = baseAlignment - timeAngle;
+        }
     });
 
 }
@@ -321,13 +331,7 @@ solData.forEach((data) => {
         p.mesh.position.z = Math.sin(p.orbitAngle) * p.orbitRadius;
         
         if (p.name === "Earth") {
-            const hours = currentSimulationDate.getHours();
-            const minutes = currentSimulationDate.getMinutes();
-            const totalHours = hours + (minutes / 60);
-            
-            const timeAngle = (totalHours / 24) * Math.PI * 2;
-            const baseAlignment = Math.PI * 1.95; 
-            p.mesh.rotation.y = baseAlignment - timeAngle;
+            p.mesh.rotation.y -= 0.0116 * 0.01 * simulationSpeed * delta;
         }else{p.mesh.rotation.y += p.rotationSpeed * 0.01 * simulationSpeed * delta;}
     });
 
