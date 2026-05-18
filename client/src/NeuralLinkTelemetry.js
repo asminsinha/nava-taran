@@ -71,9 +71,9 @@ try {
                 ? 'DECRYPTED' 
                 : 'ENCRYPTED';
             
-            const aiCompanionStatus = backendData.anomaly_count > 0 || measuredLatency > 500 
+            const aiCompanionStatus = (backendData.anomaly_count > 0 || measuredLatency > 600 )
                 ? 'STANDBY_CORE' 
-                : 'CONNECTED';
+                : 'LINKED';
 
             let computedFps = 60;
             if (measuredLatency > 600) computedFps -= 4;
@@ -170,7 +170,7 @@ try {
                 {isOpen ? '✕ CLOSE DIAGNOSTICS' : '⚙ SYSTEM TELEMETRY'}
             </button>
 
-            {/* Expanded Analytics Layout HUD */}
+            
             {isOpen && (
                 <div style={{
                     width: '260px',
@@ -260,7 +260,8 @@ try {
                         <span style={{ position: 'absolute', top: '2px', left: '4px', fontSize: '7px', color: 'rgba(0,242,255,0.4)', letterSpacing: '0.5px' }}>STREAM PACKET FREQUENCY</span>
                     </div>
 
-                    {/* PANEL B: GENUINE ROUTED COMMUNICATION UPLINKS */}
+                    
+
                     <div style={{ marginBottom: '10px' }}>
                         <div style={{ color: '#888', fontSize: '9px', marginBottom: '4px', letterSpacing: '0.5px' }}>COMMUNICATION UPLINKS</div>
                         <div>SAT-TRACKER: <span style={{color: stats.uplinks.satellite === 'STABLE' ? '#00ff00' : '#ffaa00', fontWeight: 'bold'}}>{stats.uplinks.satellite}</span></div>
@@ -270,7 +271,7 @@ try {
                         
                         <div>TERRA-DISASTER: <span style={{color: stats.uplinks.disaster === 'SYNCHRONIZED' ? '#00ff00' : '#ff3333', fontWeight: 'bold'}}>{stats.uplinks.disaster}</span></div>
                         <div>NASA-DATASET: <span style={{color: stats.uplinks.nasa === 'ENCRYPTED' ? '#00ff00' : '#ffaa00', fontWeight: 'bold'}}>{stats.uplinks.nasa}</span></div>
-                        <div>AI_SPACE_CHAT: <span style={{color: stats.uplinks.aiCompanion === 'CONNECTED' ? '#00ff00' : '#ffaa00', fontWeight: 'bold'}}>{stats.uplinks.aiCompanion}</span></div>
+                        <div>AI_SPACE_CHAT: <span style={{color: stats.uplinks.aiCompanion === 'LINKED' ? '#00ff00' : '#ffaa00', fontWeight: 'bold'}}>{stats.uplinks.aiCompanion}</span></div>
                     </div>
 
                     <div style={{ marginTop: '8px', fontSize: '10px', color: '#fff', borderTop: '1px solid #00ffff22', paddingTop: '6px' }}>
