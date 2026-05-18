@@ -229,31 +229,6 @@ app.get('/api/satellite-scan', async (req, res) => {
                     console.warn(`Could not compute repository data for satellite ${id}:`, innerError.message);
                 }
             }
-        } else {
-            // =================================================================
-            // ORIGINAL N2YO API FALLBACK PATH 
-            // =================================================================
-            for (const id of satIds) {
-                try {
-                    const url = `https://api.n2yo.com/rest/v1/satellite/positions/${id}/${observerLat}/${observerLng}/${observerAlt}/1/&apiKey=${KEY}`;
-                    const r = await axios.get(url);
-
-                    if (r.data && r.data.positions) {
-                        const pos = r.data.positions[0];
-                        missionData.push({
-                            name: r.data.info.satname,
-                            id: r.data.info.satid,
-                            lat: pos.satlatitude,
-                            lng: pos.satlongitude,
-                            alt: pos.sataltitude,
-                            azimuth: pos.azimuth,
-                            elevation: pos.elevation
-                        });
-                    }
-                } catch (innerError) {
-                    console.warn(`Could not track satellite ${id}:`, innerError.message);
-                }
-            }
         }
 
         if (missionData.length === 0) throw new Error("No orbital data retrieved");
