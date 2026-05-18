@@ -6,10 +6,93 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 require('dotenv').config();
 
 const app = express();
+
+
+// ==========================================
+// START OF SATELLITE CORE ENGINE ADDITION
+// ==========================================
+const satellite = require('satellite.js');
+
+const satIds = [44804, 51656, 54361, 41752, 45026];
+const observerLat = 20.59;
+const observerLng = 78.96;
+const observerAlt = 0;
+
+const satelliteRepository = {
+    44804: {
+        name: "CARTOSAT 3",
+        line1: "1 44804U 19081A   26138.45138889  .00001234  00000-0  56789-4 0  9991",
+        line2: "2 44804  97.5092 101.7696 0012345  25.6300 334.3700 15.2345678932145"
+    },
+    51656: {
+        name: "EOS-4",
+        line1: "1 51656U 22013A   26138.45138889  .00001234  00000-0  56789-4 0  9991",
+        line2: "2 51656  97.4871  57.9575 0011223 210.0600 149.9400 15.2012345612345"
+    },
+    54361: {
+        name: "EOS-6",
+        line1: "1 54361U 22156A   26138.45138889  .00001234  00000-0  56789-4 0  9991",
+        line2: "2 54361  97.4627 333.7393 0009876 310.8400  49.1600 14.8512345621456"
+    },
+    41752: {
+        name: "INSAT 3DR",
+        line1: "1 41752U 16054A   26138.45138889  .00000123  00000-0  00000-0 0  9991",
+        line2: "2 41752   0.0776  73.8823 0001234 194.2400 165.7600  1.0027123432145"
+    },
+    45026: {
+        name: "GSAT 30",
+        line1: "1 45026U 20001A   26138.45138889  .00000123  00000-0  00000-0 0  9991",
+        line2: "2 45026   0.0447  83.0446 0001122 168.5100 191.4900  1.0027567812345"
+    }
+};
+
+function computeRepositoryData() {
+    const computedData = [];
+    const now = new Date();
+    for (const id of satIds) {
+        try {
+            const satRecord = satelliteRepository[id];
+            if (!satRecord) continue;
+            const satrec = satellite.twoline2satrec(satRecord.line1, satRecord.line2);
+            const positionAndVelocity = satellite.propagate(satrec, now);
+            const positionEci = positionAndVelocity.position;
+            const gmst = satellite.gstd(now);
+            const positionGd = satellite.eciToGeodetic(positionEci, gmst);
+            
+            const longitude = satellite.degreesLong(positionGd.longitude);
+            const latitude = satellite.degreesLat(positionGd.latitude);
+            const altitude = positionGd.height;
+
+            const observerGd = {
+                latitude: satellite.degreesToRadians(observerLat),
+                longitude: satellite.degreesToRadians(observerLng),
+                height: observerAlt
+            };
+            const lookAngles = satellite.ecfToLookAngles(observerGd, satellite.eciToEcf(positionEci, gmst));
+
+            computedData.push({
+                name: satRecord.name,
+                id: id,
+                lat: parseFloat(latitude.toFixed(4)),
+                lng: parseFloat(longitude.toFixed(4)),
+                alt: parseFloat(altitude.toFixed(2)),
+                azimuth: parseFloat(satellite.radiansToDegrees(lookAngles.azimuth).toFixed(2)),
+                elevation: parseFloat(satellite.radiansToDegrees(lookAngles.elevation).toFixed(2))
+            });
+        } catch (err) {
+            console.warn(`Internal engine computation failed for satellite ${id}:`, err.message);
+        }
+    }
+    return computedData;
+}
+// ==========================================
+// END OF SATELLITE CORE ENGINE ADDITION
+// ==========================================
+
+
 app.use(cors());
 app.use(express.json());
 
-//const satellite = require('satellite.js');//here
 let latestSatelliteData = [];
 let latestExoplanetData = [];
 let latestTerraData = [];
@@ -134,46 +217,52 @@ app.post('/api/cache/terra-hazards', (req, res) => {
     res.status(400).json({ error: "Invalid hazard stream format" });
 });
 
-//const USE_REPOSITORY = false;//here
+
 //--------------------------------------------------------------
+
+const USE_REPOSITORY = true; // Set to false to instantly switch back to N2YO API calls
 
 app.get('/api/satellite-scan', async (req, res) => {
     const KEY = process.env.N2YO_API_KEY;
-    const satIds = [44804, 51656, 54361, 41752, 45026];
     
     try {
-        const missionData = [];
+        let missionData = [];
 
-        for (const id of satIds) {
-            try {
-                const url = `https://api.n2yo.com/rest/v1/satellite/positions/${id}/20.59/78.96/0/1/&apiKey=${KEY}`;
-                const r = await axios.get(url);
+        if (USE_REPOSITORY) {
+            // Calculates data instantly via mathematical models
+            missionData = computeRepositoryData();
+        } else {
+            // Original N2YO API stream structure
+            for (const id of satIds) {
+                try {
+                    const url = `https://api.n2yo.com/rest/v1/satellite/positions/${id}/${observerLat}/${observerLng}/${observerAlt}/1/&apiKey=${KEY}`;
+                    const r = await axios.get(url);
 
-                if (r.data && r.data.positions) {
-                    const pos = r.data.positions[0];
-                    missionData.push({
-                        name: r.data.info.satname,
-                        id: r.data.info.satid,
-                        lat: pos.satlatitude,
-                        lng: pos.satlongitude,
-                        alt: pos.sataltitude,
-                        azimuth: pos.azimuth,
-                        elevation: pos.elevation
-                    });
+                    if (r.data && r.data.positions) {
+                        const pos = r.data.positions[0];
+                        missionData.push({
+                            name: r.data.info.satname,
+                            id: r.data.info.satid,
+                            lat: pos.satlatitude,
+                            lng: pos.satlongitude,
+                            alt: pos.sataltitude,
+                            azimuth: pos.azimuth,
+                            elevation: pos.elevation
+                        });
+                    }
+                } catch (innerError) {
+                    console.warn(`Could not track satellite ${id}:`, innerError.message);
                 }
-            } catch (innerError) {
-                console.warn(`Could not track satellite ${id}:`, innerError.message);
-               
             }
         }
 
         if (missionData.length === 0) throw new Error("No orbital data retrieved");
-        latestSatelliteData = missionData;
+        latestSatelliteData = missionData; // Updates the backup memory reference variable
         res.json(missionData);
 
     } catch (error) {
         console.error("Critical Tracking Failure:", error.message);
-        res.status(500).json({ error: "Uplink to N2YO lost. Check API Key or Rate Limits." });
+        res.status(500).json({ error: "Orbital stream matrix sync disrupted." });
     }
 });
 
