@@ -128,7 +128,7 @@ const AtmosphericFlux = () => {
     }, [loading, weatherData]);
 
     return (
-        <div style={{ margin: '30px 0', width: '100%', fontFamily: 'Orbitron, sans-serif' }}>
+        <div style={{ margin: '30px 0', width: '100%', fontFamily: "'Courier New', Courier, monospace" }}>
             
             {/* INTENSIFIED HIGH-VISIBILITY HUD ACTIVATION TRIGGER BUTTON */}
             <div 
@@ -158,10 +158,10 @@ const AtmosphericFlux = () => {
             >
                 <div>
                     <span style={{ display: 'inline-block', marginRight: '12px', fontSize: '18px' }}>🌐</span>
-                    <span style={{ fontWeight: 'bold', letterSpacing: '2px', fontSize: '14px' }}>INITIALIZE ATMOSPHERIC WEATHER FLUX DECK</span>
+                    <span style={{ fontFamily: "'Orbitron', sans-serif", fontWeight: 'bold', letterSpacing: '2px', fontSize: '14px' }}>INITIALIZE ATMOSPHERIC WEATHER FLUX DECK</span>
                     <div style={{ color: '#aaa', fontSize: '10px', marginTop: '6px', letterSpacing: '1px' }}>TARGET METRICS: 14-DAY RADIAL PROJECTIONS // GEOLOCATION VECTOR STREAMING</div>
                 </div>
-                <div style={{ fontSize: '14px', fontWeight: 'bold', letterSpacing: '1.5px', textShadow: '0 0 10px #00ffff' }}>[ OPEN OVERLAY ]</div>
+                <div style={{ fontFamily: "'Orbitron', sans-serif", fontSize: '14px', fontWeight: 'bold', letterSpacing: '1.5px', textShadow: '0 0 10px #00ffff' }}>[ OPEN OVERLAY ]</div>
             </div>
 
             {/* ENHANCED AND ELONGATED HIGH-RESOLUTION HUD MODAL */}
@@ -169,7 +169,7 @@ const AtmosphericFlux = () => {
                 <div style={{
                     position: 'fixed', top: '0', left: '0', width: '100vw', height: '100vh',
                     background: 'rgba(0,4,8,0.92)', backdropFilter: 'blur(8px)',
-                    display: 'flex', justifyContent: 'center', alignParms: 'center', alignItems: 'center', zIndex: 9999
+                    display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 9999
                 }}>
                     <div style={{
                         width: '95%', maxWidth: '1100px', height: '82vh',
@@ -182,7 +182,8 @@ const AtmosphericFlux = () => {
                         <div style={{
                             display: 'flex', justifyContent: 'space-between', alignItems: 'center',
                             background: 'rgba(0, 242, 255, 0.12)', borderBottom: '2px solid rgba(0, 242, 255, 0.3)',
-                            padding: '14px 20px', color: '#00ffff', fontWeight: 'bold', fontSize: '13px', letterSpacing: '1.5px'
+                            padding: '14px 20px', color: '#00ffff', fontWeight: 'bold', fontSize: '13px', letterSpacing: '1.5px',
+                            fontFamily: "'Orbitron', sans-serif"
                         }}>
                             <div>ATMOSPHERIC METEOROLOGICAL TELEMETRY OVERLAY</div>
                             <button 
@@ -190,7 +191,7 @@ const AtmosphericFlux = () => {
                                 style={{
                                     background: 'rgba(255, 51, 51, 0.12)', border: '1px solid #ff3333',
                                     color: '#ff3333', cursor: 'pointer', padding: '4px 12px',
-                                    fontFamily: 'Orbitron, sans-serif', fontWeight: 'bold', fontSize: '11px', borderRadius: '3px',
+                                    fontFamily: "'Orbitron', sans-serif", fontWeight: 'bold', fontSize: '11px', borderRadius: '3px',
                                     letterSpacing: '1px', transition: 'all 0.2s'
                                 }}
                                 onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255, 51, 51, 0.3)'}
@@ -213,14 +214,14 @@ const AtmosphericFlux = () => {
                         {/* CORE VISUAL CONTENT HOLDER */}
                         <div style={{ flexGrow: 1, padding: '20px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '20px' }}>
                             {loading ? (
-                                <div style={{ color: '#00ffff', textAlign: 'center', marginTop: '120px', fontSize: '13px', letterSpacing: '2px' }}>
+                                <div style={{ color: '#00ffff', textAlign: 'center', marginTop: '120px', fontSize: '13px', letterSpacing: '2px', fontFamily: "'Orbitron', sans-serif" }}>
                                     ESTABLISHING GEOGRAPHIC DATA-STREAM UPLINK... PLEASE VERIFY SENSOR ACCESS
                                 </div>
                             ) : (
                                 <>
                                     {/* DATA VISUALIZATION WAVEFORM GRAPH */}
                                     <div style={{ background: 'rgba(0,16,32,0.8)', border: '1px solid rgba(0,242,255,0.25)', padding: '14px', borderRadius: '2px' }}>
-                                        <div style={{ color: '#aaa', fontSize: '10px', marginBottom: '8px', letterSpacing: '1px' }}>14-DAY THERMAL FLUX PEAK VARIANCE ANCHOR GRAPH</div>
+                                        <div style={{ fontFamily: "'Orbitron', sans-serif", color: '#aaa', fontSize: '10px', marginBottom: '8px', letterSpacing: '1px' }}>14-DAY THERMAL FLUX PEAK VARIANCE ANCHOR GRAPH</div>
                                         <canvas ref={canvasRef} width="1000" height="140" style={{ width: '100%', display: 'block' }}></canvas>
                                     </div>
 
@@ -235,10 +236,10 @@ const AtmosphericFlux = () => {
                                                 padding: '14px', borderRadius: '4px', position: 'relative'
                                             }}>
                                                 <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(0,242,255,0.25)', paddingBottom: '6px', marginBottom: '8px', fontSize: '11px' }}>
-                                                    <span style={{ color: '#00ffff', fontWeight: 'bold', letterSpacing: '1px' }}>{day.day}</span>
+                                                    <span style={{ color: '#00ffff', fontWeight: 'bold', letterSpacing: '1px', fontFamily: "'Orbitron', sans-serif" }}>{day.day}</span>
                                                     <span style={{ color: '#aaa' }}>{day.date}</span>
                                                 </div>
-                                                <div style={{ fontSize: '15px', color: '#fff', fontWeight: 'bold', marginBottom: '8px', letterSpacing: '0.5px' }}>
+                                                <div style={{ fontSize: '15px', color: '#fff', fontWeight: 'bold', marginBottom: '8px', letterSpacing: '0.5px', fontFamily: "'Orbitron', sans-serif" }}>
                                                     Max: {day.maxTemp}°C <span style={{ color: '#00f2ff', fontSize: '12px', fontWeight: 'normal' }}>/ Min: {day.minTemp}°C</span>
                                                 </div>
                                                 <div style={{ fontSize: '12px', color: '#ccc', display: 'flex', flexDirection: 'column', gap: '4px', letterSpacing: '0.5px' }}>
