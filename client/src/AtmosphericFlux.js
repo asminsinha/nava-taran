@@ -7,7 +7,7 @@ const AtmosphericFlux = () => {
     const [weatherData, setWeatherData] = useState([]);
     const canvasRef = useRef(null);
 
-    // --- SUB-ROUTINE A: TIME & POSITION MATRIX ---
+   
     useEffect(() => {
         const updateClock = () => {
             const now = new Date();
@@ -24,18 +24,18 @@ const AtmosphericFlux = () => {
         return () => clearInterval(clockTicker);
     }, []);
 
-    // --- SUB-ROUTINE B: HIGH-ACCURACY DATA METRIC INGESTION ---
+    
     useEffect(() => {
         if (!isOpen) return;
         setLoading(true);
 
         const acquireGeographicTelemetry = () => {
             if (!navigator.geolocation) {
-                fetchMeteorologicalArray(22.5726, 88.3639); // Regional Capital Backup Vectors
+                fetchMeteorologicalArray(22.5726, 88.3639); 
                 return;
             }
 
-            // High accuracy flag prevents coordinate jitter on page loads
+            
             navigator.geolocation.getCurrentPosition(
                 (pos) => {
                     fetchMeteorologicalArray(pos.coords.latitude, pos.coords.longitude);
@@ -84,7 +84,6 @@ const AtmosphericFlux = () => {
         acquireGeographicTelemetry();
     }, [isOpen]);
 
-    // --- SUB-ROUTINE C: SPARK-CHART CANVAS VISUALIZATION RENDER ---
     useEffect(() => {
         if (loading || weatherData.length === 0 || !canvasRef.current) return;
 

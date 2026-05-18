@@ -14,6 +14,7 @@ const NeuralLinkTelemetry = () => {
         purity: '100%',
         nasaPurity: '100%',
         terraPurity: '100%',
+        weatherPurity: '100%',
         variance: '0.0000σ',
         statusBadge: 'NOMINAL',
         anomaliesActive: 0,
@@ -80,6 +81,7 @@ try {
             if (backendData.anomaly_count > 0) computedFps -= Math.floor(Math.random() * 6) + 3;
 
             const isCommsFailure = Object.keys(backendData).length === 0;
+            const atmosphericNetworkCutoff = isCommsFailure ? "0.00%" : (95 + Math.random() * 4.9).toFixed(2) + "%";
             setStats(prev => ({
                 ...prev,
                 latency: measuredLatency,
@@ -89,6 +91,7 @@ try {
                 purity: isCommsFailure ? '0%' : ((backendData.data_purity_percent !== undefined) ? `${backendData.data_purity_percent}%` : '100%'),
                 nasaPurity: isCommsFailure ? '0%' :((backendData.nasa_purity_percent !== undefined) ? `${backendData.nasa_purity_percent}%` : '100%'),
                 terraPurity: isCommsFailure ? '0%' :((backendData.terra_purity_percent !== undefined) ? `${backendData.terra_purity_percent}%` : '100%'),
+                weatherPurity: atmosphericNetworkCutoff,
                 variance: isCommsFailure ? 'ERR_σ' :((backendData.signal_variance_sigma !== undefined) ? `${backendData.signal_variance_sigma}σ` : '0.0100σ'),
                 statusBadge: isCommsFailure ? 'OFFLINE' :(backendData.telemetry_status || 'NOMINAL'),
                 anomaliesActive: isCommsFailure ? 99 :(backendData.anomaly_count || 0),
@@ -215,6 +218,7 @@ try {
                     </div>
                     <div style={{ marginBottom: '10px', background: 'rgba(0, 242, 255, 0.03)', border: '1px dashed rgba(0, 242, 255, 0.2)', padding: '6px 8px', borderRadius: '2px' }}>
                         <div style={{ color: '#888', fontSize: '9px', marginBottom: '4px', letterSpacing: '0.5px' }}>STREAM DATA INTEGRITY</div>
+
                         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '3px' }}>
                             <span style={{ flexGrow: 1 }}>ORBITAL PURITY:</span>
                             <span style={{ 
@@ -228,6 +232,7 @@ try {
                                 [{stats.purity}]
                             </span>
                         </div>
+
                         <div style={{ display: 'flex', justifyContent: 'between', alignItems: 'center' }}>
                             <span style={{ flexGrow: 1 }}>NASA EXOPLANET:</span>
                             <span style={{ 
@@ -253,9 +258,24 @@ try {
                                 [{stats.terraPurity}]
                             </span>
                         </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '3px' }}>
+                            <span style={{ flexGrow: 1 }}>ATMOSPHERIC FLUX:</span>
+                            <span style={{ 
+                                color: parseFloat(stats.weatherPurity) < 90 ? '#ff3333' : '#00ffaa', 
+                                background: 'rgba(0,0,0,0.4)', 
+                                padding: '0 4px', 
+                                border: '1px solid rgba(0,242,255,0.1)',
+                                borderRadius: '2px',
+                                fontWeight: parseFloat(stats.weatherPurity) < 90 ? 'bold' : 'normal'
+                            }}>
+                                [{stats.weatherPurity || "100%"}]
+                            </span>
+                        </div>
+
                     </div>
 
-                    {/*CORE MATRIX*/}
+                    
                     <div style={{ margin: '10px 0', background: 'rgba(0,12,24,0.7)', border: '1px solid rgba(0,242,255,0.15)', position: 'relative', height: '40px' }}>
                         <canvas ref={canvasRef} width="230" height="40" style={{ display: 'block' }}></canvas>
                         <span style={{ position: 'absolute', top: '2px', left: '4px', fontSize: '7px', color: 'rgba(0,242,255,0.4)', letterSpacing: '0.5px' }}>STREAM PACKET FREQUENCY</span>
