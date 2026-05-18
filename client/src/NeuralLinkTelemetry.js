@@ -72,31 +72,32 @@ try {
                 : 'ENCRYPTED';
             
             const aiCompanionStatus = (backendData.anomaly_count > 0 || measuredLatency > 600 )
-                ? 'STANDBY_CORE' 
+                ? 'STANDBY' 
                 : 'LINKED';
 
             let computedFps = 60;
             if (measuredLatency > 600) computedFps -= 4;
             if (backendData.anomaly_count > 0) computedFps -= Math.floor(Math.random() * 6) + 3;
 
+            const isCommsFailure = Object.keys(backendData).length === 0;
             setStats(prev => ({
                 ...prev,
                 latency: measuredLatency,
                 battery: currentBatteryLevel,
                 uptime: uptimeString,
                 fps: computedFps,
-                purity: (backendData.data_purity_percent !== undefined) ? `${backendData.data_purity_percent}%` : '100%',
-                nasaPurity: (backendData.nasa_purity_percent !== undefined) ? `${backendData.nasa_purity_percent}%` : '100%',
-                terraPurity: (backendData.terra_purity_percent !== undefined) ? `${backendData.terra_purity_percent}%` : '100%',
-                variance: (backendData.signal_variance_sigma !== undefined) ? `${backendData.signal_variance_sigma}σ` : '0.0100σ',
-                statusBadge: backendData.telemetry_status || 'NOMINAL',
-                anomaliesActive: backendData.anomaly_count || 0,
+                purity: isCommsFailure ? '0%' : ((backendData.data_purity_percent !== undefined) ? `${backendData.data_purity_percent}%` : '100%'),
+                nasaPurity: isCommsFailure ? '0%' :((backendData.nasa_purity_percent !== undefined) ? `${backendData.nasa_purity_percent}%` : '100%'),
+                terraPurity: isCommsFailure ? '0%' :((backendData.terra_purity_percent !== undefined) ? `${backendData.terra_purity_percent}%` : '100%'),
+                variance: isCommsFailure ? 'ERR_σ' :((backendData.signal_variance_sigma !== undefined) ? `${backendData.signal_variance_sigma}σ` : '0.0100σ'),
+                statusBadge: isCommsFailure ? 'OFFLINE' :(backendData.telemetry_status || 'NOMINAL'),
+                anomaliesActive: isCommsFailure ? 99 :(backendData.anomaly_count || 0),
                 uplinks: {
-                    satellite: backendData.sat_tracker || 'STABLE',
-                    supabase: backendData.supabase_db || 'CONNECTED',
-                    disaster: disasterStatus, 
-                    nasa: nasaStatus,
-                    aiCompanion: aiCompanionStatus
+                    satellite: isCommsFailure ? 'DISCONNECTED' : (backendData.sat_tracker || 'STABLE'),
+                    supabase: isCommsFailure ? 'TIMEOUT' : (backendData.supabase_db || 'CONNECTED'),
+                    disaster: isCommsFailure ? 'OFF-SYNC' : disasterStatus, 
+                    nasa: isCommsFailure ? 'DECRYPTED' : nasaStatus,
+                    aiCompanion: isCommsFailure ? 'STANDBY' : aiCompanionStatus
                 }
             }));
         };
