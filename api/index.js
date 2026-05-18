@@ -284,8 +284,8 @@ app.get('/api/satellite-scan', async (req, res) => {
                     missionData.push({
                         name: profileNames[id],
                         id: id,
-                        lat: parseFloat((observerLat + (index * 2)).toFixed(4)),
-                        lng: parseFloat((observerLng + (index * 4)).toFixed(4)),
+                        lat: parseFloat((observerLat + (id * 2)).toFixed(4)),
+                        lng: parseFloat((observerLng + (id * 4)).toFixed(4)),
                         alt: baseAlts[id],
                         azimuth: 120.45,
                         elevation: 15.30
