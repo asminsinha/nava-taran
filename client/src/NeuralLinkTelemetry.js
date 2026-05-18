@@ -10,6 +10,7 @@ const NeuralLinkTelemetry = () => {
         cores: navigator.hardwareConcurrency || 12,
         battery: '100%',
         uptime: '00:00:00',
+        fps: 60,
         purity: '100%',
         nasaPurity: '100%',
         terraPurity: '100%',
@@ -20,7 +21,8 @@ const NeuralLinkTelemetry = () => {
             satellite: 'STABLE',
             supabase: 'BRIDGE_CHECKING',
             disaster: 'SYNCHRONIZED',
-            nasa: 'ENCRYPTED'
+            nasa: 'ENCRYPTED',
+            aiCompanion: 'ONLINE'
         }
     });
 
@@ -68,12 +70,21 @@ try {
             const nasaStatus = (backendData.nasa_purity_percent !== undefined && backendData.nasa_purity_percent < 90.0) 
                 ? 'DECRYPTED' 
                 : 'ENCRYPTED';
-  
+            
+            const aiCompanionStatus = backendData.anomaly_count > 0 || measuredLatency > 500 
+                ? 'STANDBY_CORE' 
+                : 'CONNECTED';
+
+            let computedFps = 60;
+            if (measuredLatency > 600) computedFps -= 4;
+            if (backendData.anomaly_count > 0) computedFps -= Math.floor(Math.random() * 6) + 3;
+
             setStats(prev => ({
                 ...prev,
                 latency: measuredLatency,
                 battery: currentBatteryLevel,
                 uptime: uptimeString,
+                fps: computedFps,
                 purity: (backendData.data_purity_percent !== undefined) ? `${backendData.data_purity_percent}%` : '100%',
                 nasaPurity: (backendData.nasa_purity_percent !== undefined) ? `${backendData.nasa_purity_percent}%` : '100%',
                 terraPurity: (backendData.terra_purity_percent !== undefined) ? `${backendData.terra_purity_percent}%` : '100%',
@@ -84,7 +95,8 @@ try {
                     satellite: backendData.sat_tracker || 'STABLE',
                     supabase: backendData.supabase_db || 'CONNECTED',
                     disaster: disasterStatus, 
-                    nasa: nasaStatus 
+                    nasa: nasaStatus,
+                    aiCompanion: aiCompanionStatus
                 }
             }));
         };
@@ -105,7 +117,7 @@ try {
         const renderOscilloscopeFrame = () => {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             wavePhase.current += 0.12; 
-
+            const isSystemStrained = stats.anomaliesActive > 0 || stats.uplinks.aiCompanion === 'STANDBY_CORE';
            
             const baseWaveHeight = stats.anomaliesActive > 0 ? 15 : 6;
             const lineJitterNoise = stats.anomaliesActive > 0 ? 4 : 0;
@@ -178,13 +190,14 @@ try {
                         NAVA-TARAN CORE DIAGNOSTICS
                     </div>
 
-                    {/* PANEL A: REAL SYSTEM HARDWARE DIAGNOSTICS */}
+                    
                     <div style={{ marginBottom: '10px', lineY: '1.5' }}>
-                        <div style={{ color: '#888', fontSize: '9px', marginBottom: '4px', letterSpacing: '0.5px' }}>HARDWARE TELEMETRY</div>
+                        <div style={{ color: '#888', fontSize: '9px', marginBottom: '4px', letterSpacing: '0.5px' }}>HARDWARE METRICS</div>
                         <div>SYSTEM LATENCY: <span style={{color: stats.latency > 700 ? '#ff3333' : '#00ff00', fontWeight: 'bold'}}>{stats.latency}ms</span></div>
                         <div>ACTIVE CORES: <span style={{color: '#fff'}}>{stats.cores} / {stats.cores}</span></div>
                         <div>DEVICE CHARGE: <span style={{color: '#fff'}}>{stats.battery}</span></div>
-                        
+                        <div>FPS: <span style={{color: stats.fps < 55 ? '#ffaa00' : '#00ff00', fontWeight: 'bold'}}>{stats.fps} FPS</span></div>
+
                         <div style={{ marginTop: '3px' }}>
                             <span style={{ color: '#888', fontSize: '11px' }}>SIGNAL VARIANCE:</span> <span style={{color: '#fff', fontWeight: 'bold'}}>{stats.variance}</span>
                             <span style={{
@@ -258,6 +271,7 @@ try {
                         
                         <div>TERRA-DISASTER: <span style={{color: stats.uplinks.disaster === 'SYNCHRONIZED' ? '#00ff00' : '#ff3333', fontWeight: 'bold'}}>{stats.uplinks.disaster}</span></div>
                         <div>NASA-DATASET: <span style={{color: stats.uplinks.nasa === 'ENCRYPTED' ? '#00ff00' : '#ffaa00', fontWeight: 'bold'}}>{stats.uplinks.nasa}</span></div>
+                        <div>AI_SPACE_CHAT: <span style={{color: stats.uplinks.aiCompanion === 'CONNECTED' ? '#00ff00' : '#ffaa00', fontWeight: 'bold'}}>{stats.uplinks.aiCompanion}</span></div>
                     </div>
 
                     <div style={{ marginTop: '8px', fontSize: '10px', color: '#fff', borderTop: '1px solid #00ffff22', paddingTop: '6px' }}>
