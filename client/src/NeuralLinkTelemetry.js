@@ -4,7 +4,7 @@ const NeuralLinkTelemetry = () => {
     const [isOpen, setIsOpen] = useState(false);
     const canvasRef = useRef(null);
     const wavePhase = useRef(0);
-
+    const lastKnownWeatherPurity = useRef('100.00%');
     const [stats, setStats] = useState({
         latency: 0,
         cores: navigator.hardwareConcurrency || 12,
@@ -28,13 +28,11 @@ const NeuralLinkTelemetry = () => {
     });
 
     useEffect(() => {
-        const startTime = Date.now();
-
-        let currentPurityValue = '100.00%';
+        const startTime = Date.now(); 
 
         const handleWeatherUpdate = (e) => {
             if (e.detail && e.detail.purity) {
-                currentPurityValue = e.detail.purity;
+                lastKnownWeatherPurity.current = e.detail.purity;
             }
         };
         window.addEventListener('weatherTelemetryUpdate', handleWeatherUpdate);
@@ -100,7 +98,7 @@ try {
                 purity: isCommsFailure ? '0.00%' : ((backendData.data_purity_percent !== undefined) ? `${Number(backendData.data_purity_percent).toFixed(2)}%` : '100.00%'),
                 nasaPurity: isCommsFailure ? '0.00%' :((backendData.nasa_purity_percent !== undefined) ? `${backendData.nasa_purity_percent}%` : '100.00%'),
                 terraPurity: isCommsFailure ? '0.00%' :((backendData.terra_purity_percent !== undefined) ? `${backendData.terra_purity_percent}%` : '100.00%'),
-                weatherPurity: isCommsFailure ? '0.00%' : (isNaN(parseFloat(currentPurityValue)) ? '0.00%' : (currentPurityValue.includes('%') ? currentPurityValue : `${Number(currentPurityValue).toFixed(2)}%`)),
+                weatherPurity: isCommsFailure ? '0.00%' : (isNaN(parseFloat(lastKnownWeatherPurity.current)) ? '100.00%' : (String(lastKnownWeatherPurity.current).includes('%') ? lastKnownWeatherPurity.current : `${Number(lastKnownWeatherPurity.current).toFixed(2)}%`)),
                 variance: isCommsFailure ? 'ERR_σ' :((backendData.signal_variance_sigma !== undefined) ? `${backendData.signal_variance_sigma}σ` : '0.0100σ'),
                 statusBadge: isCommsFailure ? 'OFFLINE' :(backendData.telemetry_status || 'NOMINAL'),
                 anomaliesActive: isCommsFailure ? 99 :(backendData.anomaly_count || 0),
