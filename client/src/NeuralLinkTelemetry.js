@@ -117,8 +117,7 @@ try {
         const renderOscilloscopeFrame = () => {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             wavePhase.current += 0.12; 
-            const isSystemStrained = stats.anomaliesActive > 0 || stats.uplinks.aiCompanion === 'STANDBY_CORE';
-           
+            
             const baseWaveHeight = stats.anomaliesActive > 0 ? 15 : 6;
             const lineJitterNoise = stats.anomaliesActive > 0 ? 4 : 0;
 
