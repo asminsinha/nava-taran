@@ -9,7 +9,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-const satellite = require('satellite.js');
+const satellite = require('satellite.js');//here
 let latestSatelliteData = [];
 let latestExoplanetData = [];
 let latestTerraData = [];
@@ -134,7 +134,7 @@ app.post('/api/cache/terra-hazards', (req, res) => {
     res.status(400).json({ error: "Invalid hazard stream format" });
 });
 
-const USE_REPOSITORY = true;
+const USE_REPOSITORY = false;//here
 //--------------------------------------------------------------
 
 app.get('/api/satellite-scan', async (req, res) => {
