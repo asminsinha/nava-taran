@@ -38,7 +38,7 @@ const AtmosphericFlux = () => {
 
         const acquireGeographicTelemetry = () => {
             if (!navigator.geolocation) {
-                fetchMeteorologicalArray(22.5726, 88.3639); 
+                fetchMeteorologicalArray(22.5726, 88.3639, 15); 
                 return;
             }
 
@@ -49,13 +49,13 @@ const AtmosphericFlux = () => {
                 },
                 (err) => {
                     console.warn("Geolocation access delayed or denied. Utilizing regional backup matrix.");
-                    fetchMeteorologicalArray(22.5726, 88.3639);
+                    fetchMeteorologicalArray(22.5726, 88.3639, 15);
                 },
                 { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
             );
         };
 
-        const fetchMeteorologicalArray = async (lat, lon) => {
+        const fetchMeteorologicalArray = async (lat, lon, penalty) => {
             const startTime = performance.now();
             try {
                 setLocalMeta(prev => ({ ...prev, coords: `${lat.toFixed(4)}°N, ${lon.toFixed(4)}°E` }));
