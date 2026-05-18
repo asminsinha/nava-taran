@@ -29,6 +29,13 @@ const AtmosphericFlux = () => {
         if (!isOpen) return;
         setLoading(true);
 
+        const dispatchStreamHealth = (purityPercentage) => {
+            const event = new CustomEvent('weatherTelemetryUpdate', { 
+                detail: { purity: `${purityPercentage.toFixed(2)}%` } 
+            });
+            window.dispatchEvent(event);
+        };
+
         const acquireGeographicTelemetry = () => {
             if (!navigator.geolocation) {
                 fetchMeteorologicalArray(22.5726, 88.3639); 
@@ -49,13 +56,24 @@ const AtmosphericFlux = () => {
         };
 
         const fetchMeteorologicalArray = async (lat, lon) => {
+            const startTime = performance.now();
             try {
                 setLocalMeta(prev => ({ ...prev, coords: `${lat.toFixed(4)}°N, ${lon.toFixed(4)}°E` }));
                 
                 const apiURL = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&daily=temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max,relative_humidity_2m_mean,surface_pressure_mean,shortwave_radiation_sum,et0_fao_evapotranspiration&timezone=auto&forecast_days=14`;
                 
                 const response = await fetch(apiURL);
+                if (!response.ok) throw new Error("Server response anomaly");
                 const data = await response.json();
+                const duration = performance.now() - startTime;
+
+                let latencyPenalty = 0;
+                if (duration > 200) {
+                    latencyPenalty = Math.min((duration - 200) / 50, 20); 
+                }
+
+                const finalPurity = Math.max(100 - penalty - latencyPenalty, 5.00);
+                dispatchStreamHealth(finalPurity);
 
                 const formattedDays = data.daily.time.map((dateStr, index) => {
                     const parsedDate = new Date(dateStr);

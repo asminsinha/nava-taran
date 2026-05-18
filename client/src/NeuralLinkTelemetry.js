@@ -30,6 +30,15 @@ const NeuralLinkTelemetry = () => {
     useEffect(() => {
         const startTime = Date.now();
 
+        let currentPurityValue = '100.00%';
+
+        const handleWeatherUpdate = (e) => {
+            if (e.detail && e.detail.purity) {
+                currentPurityValue = e.detail.purity;
+            }
+        };
+        window.addEventListener('weatherTelemetryUpdate', handleWeatherUpdate);
+
         const fetchLiveTelemetryMatrix = async () => {
             const elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
             
@@ -81,7 +90,7 @@ try {
             if (backendData.anomaly_count > 0) computedFps -= Math.floor(Math.random() * 6) + 3;
 
             const isCommsFailure = Object.keys(backendData).length === 0;
-            const atmosphericNetworkCutoff = isCommsFailure ? "0.00%" : (95 + Math.random() * 4.9).toFixed(2) + "%";
+            
             setStats(prev => ({
                 ...prev,
                 latency: measuredLatency,
@@ -91,7 +100,7 @@ try {
                 purity: isCommsFailure ? '0%' : ((backendData.data_purity_percent !== undefined) ? `${backendData.data_purity_percent}%` : '100%'),
                 nasaPurity: isCommsFailure ? '0%' :((backendData.nasa_purity_percent !== undefined) ? `${backendData.nasa_purity_percent}%` : '100%'),
                 terraPurity: isCommsFailure ? '0%' :((backendData.terra_purity_percent !== undefined) ? `${backendData.terra_purity_percent}%` : '100%'),
-                weatherPurity: atmosphericNetworkCutoff,
+                weatherPurity: isCommsFailure ? '0.00%' : currentPurityValue,
                 variance: isCommsFailure ? 'ERR_σ' :((backendData.signal_variance_sigma !== undefined) ? `${backendData.signal_variance_sigma}σ` : '0.0100σ'),
                 statusBadge: isCommsFailure ? 'OFFLINE' :(backendData.telemetry_status || 'NOMINAL'),
                 anomaliesActive: isCommsFailure ? 99 :(backendData.anomaly_count || 0),
@@ -108,7 +117,10 @@ try {
         fetchLiveTelemetryMatrix();
         const telemetryInterval = setInterval(fetchLiveTelemetryMatrix, 4000);
 
-        return () => clearInterval(telemetryInterval);
+        return () => {
+            clearInterval(telemetryInterval);
+            window.removeEventListener('weatherTelemetryUpdate', handleWeatherUpdate);
+        };
     }, []);
 
     useEffect(() => {
@@ -269,7 +281,7 @@ try {
                                 borderRadius: '2px',
                                 fontWeight: parseFloat(stats.weatherPurity) < 90 ? 'bold' : 'normal'
                             }}>
-                                [{stats.weatherPurity || "100%"}]
+                                [{stats.weatherPurity}]
                             </span>
                         </div>
 
