@@ -8,6 +8,7 @@ import 'leaflet/dist/leaflet.css';
 import icon from 'leaflet/dist/images/marker-icon.png';
 import iconShadow from 'leaflet/dist/images/marker-shadow.png';
 import NeuralLinkTelemetry from './NeuralLinkTelemetry';
+import AtmosphericFlux from './AtmosphericFlux';
 let DefaultIcon = L.icon({ iconUrl: icon, shadowUrl: iconShadow, iconSize: [25, 41], iconAnchor: [12, 41] });
 L.Marker.prototype.options.icon = DefaultIcon;
 
@@ -169,6 +170,8 @@ const TerraScan = () => {
 					</MapContainer>
 				</div>
 			</div>
+            
+            <AtmosphericFlux />
 
 			<div className="external-intel-feed" style={{ background: 'transparent', padding: '40px 20px' }}>
 				<div className="archive-separator" style={{ textAlign: 'center', margin: '40px 0 100px', borderBottom: '1px solid rgba(0, 255, 136, 0.3)', lineHeight: '0.1em' }}>
