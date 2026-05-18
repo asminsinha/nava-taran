@@ -128,7 +128,7 @@ const AtmosphericFlux = () => {
     }, [loading, weatherData]);
 
     return (
-        <div style={{ margin: '30px 0', width: '100%', fontFamily: "'Courier New', Courier, monospace" }}>
+        <div style={{ margin: '30px 0', width: '100%', fontFamily: "monospace" }}>
             
             {/* INTENSIFIED HIGH-VISIBILITY HUD ACTIVATION TRIGGER BUTTON */}
             <div 
