@@ -8,11 +8,12 @@ require('dotenv').config();
 const app = express();
 
 
+
+
+
 // ==========================================
 // START OF SATELLITE CORE ENGINE ADDITION
 // ==========================================
-
-
 const satIds = [44804, 51656, 54361, 41752, 45026];
 const observerLat = 20.59;
 const observerLng = 78.96;
@@ -95,6 +96,10 @@ function computeRepositoryData() {
 // ==========================================
 // END OF SATELLITE CORE ENGINE ADDITION
 // ==========================================
+
+
+
+
 
 
 app.use(cors());
@@ -225,8 +230,9 @@ app.post('/api/cache/terra-hazards', (req, res) => {
 });
 
 
-//--------------------------------------------------------------
 
+
+//--------------------------------------------------------------
 
 const USE_SATNOGS_REPOSITORY = true; // Set to false to instantly drop back to your original N2YO stream
 
@@ -329,8 +335,12 @@ app.get('/api/satellite-scan', async (req, res) => {
     }
 });
 
-
 //--------------------------------------------------------------
+
+
+
+
+
 
 app.get('/api/telemetry', async (req, res) => {
     let orbitalAssetsStream = [];
