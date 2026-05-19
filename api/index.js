@@ -8,27 +8,16 @@ require('dotenv').config();
 
 const app = express();
 
-
-
-
-
-
 app.use(cors());
 app.use(express.json());
 
 let latestSatelliteData = [];
-
-// --------------------------------------
-// LIVE TLE CACHE
-// Prevents repeated repository fetches
-// --------------------------------------
-
 let cachedTLEs = {};
 let lastTLEUpdate = 0;
 
 let latestExoplanetData = [];
 let latestTerraData = [];
-// SUPABASE 
+// SUPABASE database
 const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
 
@@ -37,8 +26,6 @@ const supabase = createClient(supabaseUrl, supabaseKey);
 console.log(" Global Vault Initialized (Supabase Cloud)");
 
 const genAI = new GoogleGenerativeAI(process.env.AI_API_KEY);
-
-// AUTHENTICATION
 
 app.post('/api/auth/signup', async (req, res) => {
     const { name, email, phone, password } = req.body;
@@ -148,16 +135,6 @@ app.post('/api/cache/terra-hazards', (req, res) => {
     }
     res.status(400).json({ error: "Invalid hazard stream format" });
 });
-
-
-
-
-//--------------------------------------------------------------
-
-//--------------------------------------------------------------
-// SATELLITE TRACKING SYSTEM
-// LIVE CELESTRAK + LOCAL PROPAGATION
-//--------------------------------------------------------------
 
 app.get('/api/satellite-scan', async (req, res) => {
 
@@ -394,15 +371,6 @@ app.get('/api/satellite-scan', async (req, res) => {
         });
     }
 });
-
-//--------------------------------------------------------------
-
-//--------------------------------------------------------------
-
-
-
-
-
 
 app.get('/api/telemetry', async (req, res) => {
     let orbitalAssetsStream = [];
