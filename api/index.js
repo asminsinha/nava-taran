@@ -1,23 +1,12 @@
 const express = require('express');
 const cors = require('cors');
+const satellite = require('satellite.js');//here
 const axios = require('axios');
 const { createClient } = require('@supabase/supabase-js');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 require('dotenv').config();
 
 const app = express();
-
-
-
-
-
-// ==========================================
-// START OF SATELLITE CORE ENGINE ADDITION
-// ==========================================
-
-// ==========================================
-// END OF SATELLITE CORE ENGINE ADDITION
-// ==========================================
 
 
 
@@ -158,68 +147,197 @@ app.post('/api/cache/terra-hazards', (req, res) => {
 
 
 app.get('/api/satellite-scan', async (req, res) => {
-    // The exact 5 NORAD tracking IDs for your project's space assets
-    const satIds = [44804, 51656, 54361, 41752, 45026];
-    const missionData = [];
+
+    // --------------------------------------
+    // SAME SATELLITES AS ORIGINAL N2YO SETUP
+    // --------------------------------------
+
+    const satellites = [
+        { id: 44804, name: "CARTOSAT 3" },
+        { id: 51656, name: "EOS-4" },
+        { id: 54361, name: "EOS-6" },
+        { id: 41752, name: "INSAT 3DR" },
+        { id: 45026, name: "GSAT 30" }
+    ];
 
     try {
-        // 1. Fetch live metadata from the official CelesTrak JSON Repository 
-        // Querying by your specific tracking IDs directly targets the live repository logs
-        const url = `https://celestrak.org/NORAD/elements/gp.php?CATNR=${satIds.join(',')}&FORMAT=json`;
-        const response = await axios.get(url, { timeout: 5000 });
 
-        if (response.data && response.data.length > 0) {
-            // 2. Map the live orbital vectors directly to your frontend payload requirements
-            response.data.forEach(sat => {
-                const satId = parseInt(sat.OBJECT_ID_NUMBER || sat.NORAD_CAT_ID);
-                
-                // Static structural baselines for altitude layers to ensure UI alignment
-                const baseAlts = { 44804: 523.47, 51656: 535.18, 54361: 740.03, 41752: 35804.81, 45026: 35788.24 };
+        const missionData = [];
 
-                // Extracting authentic, live positional tracking elements from the repository file
-                const meanMotion = sat.MEAN_MOTION; // Revolutions per day
-                const inclination = sat.INCLINATION; // Orbital tilt angle
-                const raan = sat.RAAN; // Right Ascension of Ascending Node
+        // --------------------------------------
+        // OBSERVER LOCATION
+        // SAME AS ORIGINAL N2YO IMPLEMENTATION
+        // --------------------------------------
 
-                // Calculate genuine, real-time coordinates using standard astronomical equations 
-                // directly derived from the live repository's current ephemeris epoch time stamps
-                const epochTime = new Date(sat.EPOCH).getTime();
-                const timeDeltaDays = (Date.now() - epochTime) / (1000 * 60 * 60 * 24);
-                
-                // Authentic physics-based location mapping based on true orbital progression
-                let calculatedLat = inclination * Math.sin(timeDeltaDays * meanMotion * 2 * Math.PI);
-                let calculatedLng = (raan + (timeDeltaDays * 360) - (timeDeltaDays * meanMotion * 360)) % 360;
-                if (calculatedLng > 180) calculatedLng -= 360;
+        const observerGd = {
+            latitude: satellite.degreesToRadians(20.59),
+            longitude: satellite.degreesToRadians(78.96),
+            height: 0
+        };
 
-                // Derive authentic look-angles relative to your central tracking station
-                const mockAzimuth = (raan + inclination) % 360;
-                const mockElevation = Math.abs(Math.sin(meanMotion) * 90);
+        // --------------------------------------
+        // FETCH LIVE TLE DATA FROM CELESTRAK
+        // Repository source replacing N2YO API
+        // --------------------------------------
+
+        const tleResponse = await axios.get(
+            'https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=tle'
+        );
+
+        const tleData = tleResponse.data;
+
+        // Split TLE file lines
+        const lines = tleData.split('\n');
+
+        // --------------------------------------
+        // PROCESS EACH SATELLITE
+        // --------------------------------------
+
+        for (const sat of satellites) {
+
+            try {
+
+                let tleLine1 = null;
+                let tleLine2 = null;
+
+                // --------------------------------------
+                // FIND MATCHING NORAD ID
+                // --------------------------------------
+
+                for (let i = 0; i < lines.length; i++) {
+
+                    if (
+                        lines[i + 1] &&
+                        lines[i + 1].includes(sat.id)
+                    ) {
+                        tleLine1 = lines[i + 1].trim();
+                        tleLine2 = lines[i + 2].trim();
+                        break;
+                    }
+                }
+
+                // Skip if no TLE found
+                if (!tleLine1 || !tleLine2) {
+                    console.warn(`No TLE found for ${sat.name}`);
+                    continue;
+                }
+
+                // --------------------------------------
+                // CREATE SATELLITE RECORD
+                // --------------------------------------
+
+                const satrec = satellite.twoline2satrec(
+                    tleLine1,
+                    tleLine2
+                );
+
+                // Current time
+                const now = new Date();
+
+                // Propagate orbit
+                const positionAndVelocity =
+                    satellite.propagate(satrec, now);
+
+                const positionEci = positionAndVelocity.position;
+
+                if (!positionEci) {
+                    console.warn(`Propagation failed for ${sat.name}`);
+                    continue;
+                }
+
+                // GMST conversion
+                const gmst = satellite.gstime(now);
+
+                // Convert to geodetic coords
+                const positionGd =
+                    satellite.eciToGeodetic(positionEci, gmst);
+
+                // Latitude / Longitude
+                const latitude =
+                    satellite.radiansToDegrees(positionGd.latitude);
+
+                const longitude =
+                    satellite.radiansToDegrees(positionGd.longitude);
+
+                // Altitude in KM
+                const altitude = positionGd.height;
+
+                // Observer look angles
+                const positionEcf =
+                    satellite.eciToEcf(positionEci, gmst);
+
+                const lookAngles =
+                    satellite.ecfToLookAngles(
+                        observerGd,
+                        positionEcf
+                    );
+
+                const azimuth =
+                    satellite.radiansToDegrees(
+                        lookAngles.azimuth
+                    );
+
+                const elevation =
+                    satellite.radiansToDegrees(
+                        lookAngles.elevation
+                    );
+
+                // --------------------------------------
+                // PUSH DATA
+                // EXACT SAME STRUCTURE AS N2YO
+                // --------------------------------------
 
                 missionData.push({
-                    name: sat.OBJECT_NAME ? sat.OBJECT_NAME.trim() : `SAT ${satId}`,
-                    id: satId,
-                    lat: parseFloat(calculatedLat.toFixed(4)),
-                    lng: parseFloat(calculatedLng.toFixed(4)),
-                    alt: baseAlts[satId] || 500.00,
-                    azimuth: parseFloat(mockAzimuth.toFixed(2)),
-                    elevation: parseFloat(mockElevation.toFixed(2))
+
+                    name: sat.name,
+
+                    id: sat.id,
+
+                    lat: latitude,
+
+                    lng: longitude,
+
+                    alt: altitude,
+
+                    azimuth: azimuth,
+
+                    elevation: elevation
+
                 });
-            });
+
+            } catch (innerError) {
+
+                console.warn(
+                    `Could not track satellite ${sat.id}:`,
+                    innerError.message
+                );
+            }
         }
+
+        // --------------------------------------
+        // FAILSAFE
+        // --------------------------------------
 
         if (missionData.length === 0) {
-            throw new Error("Repository data structure empty or mismatch encountered.");
+            throw new Error("No orbital data retrieved");
         }
 
-        // 3. Keep your global serverless memory backup variable perfectly updated
         latestSatelliteData = missionData;
 
-        // 4. Return the genuine JSON stream down to your map cards
-        return res.status(200).json(missionData);
+        // SAME RESPONSE STRUCTURE
+        res.json(missionData);
 
     } catch (error) {
-        console.error("Repository Pipeline Failure:", error.message);
-        return res.status(500).json({ error: "Failed to pull data matrix from live repository source." });
+
+        console.error(
+            "Critical Tracking Failure:",
+            error.message
+        );
+
+        res.status(500).json({
+            error:
+                "Telemetry repository link failure. Orbital propagation unavailable."
+        });
     }
 });
 
