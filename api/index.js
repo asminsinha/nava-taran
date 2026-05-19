@@ -1,6 +1,6 @@
 const express = require('express');
 const cors = require('cors');
-const satellite = require('satellite.js');//here
+const satellite = require('satellite.js');
 const axios = require('axios');
 const { createClient } = require('@supabase/supabase-js');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
@@ -150,11 +150,6 @@ app.get('/api/satellite-scan', async (req, res) => {
     try {
 
         const missionData = [];
-
-        // --------------------------------------
-        // OBSERVER POSITION
-        // --------------------------------------
-
         const observerGd = {
 
             latitude: satellite.degreesToRadians(20.59),
@@ -163,11 +158,6 @@ app.get('/api/satellite-scan', async (req, res) => {
 
             height: 0
         };
-
-        // --------------------------------------
-        // TLE CACHE REFRESH
-        // Refresh every 6 hours
-        // --------------------------------------
 
         const nowTime = Date.now();
 
@@ -221,11 +211,6 @@ app.get('/api/satellite-scan', async (req, res) => {
 
             lastTLEUpdate = nowTime;
         }
-
-        // --------------------------------------
-        // SATELLITE PROPAGATION
-        // --------------------------------------
-
         for (const sat of satellites) {
 
             try {
@@ -312,10 +297,6 @@ app.get('/api/satellite-scan', async (req, res) => {
                         lookAngles.elevation
                     );
 
-                // --------------------------------------
-                // SAME RESPONSE STRUCTURE
-                // --------------------------------------
-
                 missionData.push({
 
                     name: sat.name,
@@ -341,10 +322,6 @@ app.get('/api/satellite-scan', async (req, res) => {
                 );
             }
         }
-
-        // --------------------------------------
-        // FAILSAFE
-        // --------------------------------------
 
         if (missionData.length === 0) {
 
@@ -394,7 +371,7 @@ app.get('/api/telemetry', async (req, res) => {
                 droppedPacketsCount += (5 - latestSatelliteData.length);
             }
         } else {
-            // Trigger fallback if satellite scan has never run yet or failed completely
+            
             completeNetworkFailure = true;
             orbitalAssetsStream = [420.2, 418.5, 421.9, 419.1, 422.4];
         }
@@ -442,7 +419,7 @@ app.get('/api/telemetry', async (req, res) => {
 
             for (let i = 0; i < scanLimit; i++) {
                 const planet = latestExoplanetData[i];
-                // Confirm critical TAP fields exist and haven't dropped out as null or empty strings
+               
                 if (!planet.pl_name || !planet.hostname || planet.pl_orbper === null || isNaN(parseFloat(planet.pl_orbper))) {
                     corruptedNasaRecords++;
                 }
@@ -452,7 +429,7 @@ app.get('/api/telemetry', async (req, res) => {
                 nasaIntegrityPercent = 100.0 - ((corruptedNasaRecords / evaluatedFieldsCount) * 100.0);
             }
         } else {
-            nasaIntegrityPercent = 0.0; // Threat state: No dataset currently pulled through memory pipeline
+            nasaIntegrityPercent = 0.0; 
         }
 
 
@@ -466,16 +443,16 @@ app.get('/api/telemetry', async (req, res) => {
             for (let i = 0; i < scanLimit; i++) {
                 const event = latestTerraData[i];
                 try {
-                    // Dive directly into the unique nested geometry structure used by NASA EONET
+                  
                     const lon = parseFloat(event.geometry[0].coordinates[0]);
                     const lat = parseFloat(event.geometry[0].coordinates[1]);
 
-                    // Test for data corruption or coordinate layout boundary errors
+                  
                     if (isNaN(lon) || isNaN(lat) || Math.abs(lat) > 90 || Math.abs(lon) > 180 || !event.categories[0].title) {
                         structuralTerraErrors++;
                     }
                 } catch (structureError) {
-                    structuralTerraErrors++; // Catches cases where nested structures are broken or missing
+                    structuralTerraErrors++;
                 }
                 checkCount++;
             }

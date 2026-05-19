@@ -473,7 +473,7 @@ const sendMessage = async () => {
                     INDIAN ORBITAL ASSETS TELEMETRY
                 </h2>
                 <p style={{ color: '#888', fontSize: '0.8rem' }}>
-                    SECURE NODE | DATA SOURCE: N2YO & NASA GIBS
+                    SECURE NODE | DATA SOURCE: CELESTRAK & NASA GIBS
                 </p>
             </div>
 
