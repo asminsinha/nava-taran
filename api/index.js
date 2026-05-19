@@ -180,9 +180,13 @@ app.get('/api/satellite-scan', async (req, res) => {
         // Repository source replacing N2YO API
         // --------------------------------------
 
-        const tleResponse = await axios.get(
-            'https://celestrak.org/NORAD/elements/gp.php?GROUP=active&FORMAT=tle'
-        );
+        const tleUrls = {
+    44804: 'https://celestrak.org/NORAD/elements/gp.php?CATNR=44804&FORMAT=tle',
+    51656: 'https://celestrak.org/NORAD/elements/gp.php?CATNR=51656&FORMAT=tle',
+    54361: 'https://celestrak.org/NORAD/elements/gp.php?CATNR=54361&FORMAT=tle',
+    41752: 'https://celestrak.org/NORAD/elements/gp.php?CATNR=41752&FORMAT=tle',
+    45026: 'https://celestrak.org/NORAD/elements/gp.php?CATNR=45026&FORMAT=tle'
+        };
 
         const tleData = tleResponse.data;
 
@@ -195,123 +199,114 @@ app.get('/api/satellite-scan', async (req, res) => {
 
         for (const sat of satellites) {
 
-            try {
+    try {
 
-                let tleLine1 = null;
-                let tleLine2 = null;
+        // --------------------------------------
+        // FETCH INDIVIDUAL SATELLITE TLE
+        // MUCH FASTER THAN FULL DATABASE
+        // --------------------------------------
 
-                // --------------------------------------
-                // FIND MATCHING NORAD ID
-                // --------------------------------------
-
-                for (let i = 0; i < lines.length; i++) {
-
-                    if (
-                        lines[i + 1] &&
-                        lines[i + 1].includes(sat.id)
-                    ) {
-                        tleLine1 = lines[i + 1].trim();
-                        tleLine2 = lines[i + 2].trim();
-                        break;
-                    }
-                }
-
-                // Skip if no TLE found
-                if (!tleLine1 || !tleLine2) {
-                    console.warn(`No TLE found for ${sat.name}`);
-                    continue;
-                }
-
-                // --------------------------------------
-                // CREATE SATELLITE RECORD
-                // --------------------------------------
-
-                const satrec = satellite.twoline2satrec(
-                    tleLine1,
-                    tleLine2
-                );
-
-                // Current time
-                const now = new Date();
-
-                // Propagate orbit
-                const positionAndVelocity =
-                    satellite.propagate(satrec, now);
-
-                const positionEci = positionAndVelocity.position;
-
-                if (!positionEci) {
-                    console.warn(`Propagation failed for ${sat.name}`);
-                    continue;
-                }
-
-                // GMST conversion
-                const gmst = satellite.gstime(now);
-
-                // Convert to geodetic coords
-                const positionGd =
-                    satellite.eciToGeodetic(positionEci, gmst);
-
-                // Latitude / Longitude
-                const latitude =
-                    satellite.radiansToDegrees(positionGd.latitude);
-
-                const longitude =
-                    satellite.radiansToDegrees(positionGd.longitude);
-
-                // Altitude in KM
-                const altitude = positionGd.height;
-
-                // Observer look angles
-                const positionEcf =
-                    satellite.eciToEcf(positionEci, gmst);
-
-                const lookAngles =
-                    satellite.ecfToLookAngles(
-                        observerGd,
-                        positionEcf
-                    );
-
-                const azimuth =
-                    satellite.radiansToDegrees(
-                        lookAngles.azimuth
-                    );
-
-                const elevation =
-                    satellite.radiansToDegrees(
-                        lookAngles.elevation
-                    );
-
-                // --------------------------------------
-                // PUSH DATA
-                // EXACT SAME STRUCTURE AS N2YO
-                // --------------------------------------
-
-                missionData.push({
-
-                    name: sat.name,
-
-                    id: sat.id,
-
-                    lat: latitude,
-
-                    lng: longitude,
-
-                    alt: altitude,
-
-                    azimuth: azimuth,
-
-                    elevation: elevation
-
-                });
-
-            } catch (innerError) {
-
-                console.warn(
-                    `Could not track satellite ${sat.id}:`,
-                    innerError.message
-                );
+        const tleResponse = await axios.get(
+            tleUrls[sat.id],
+            {
+                timeout: 5000
             }
+        );
+
+        const tleLines = tleResponse.data
+            .split('\n')
+            .filter(line => line.trim() !== '');
+
+        // Expected:
+        // [NAME, LINE1, LINE2]
+
+        if (tleLines.length < 3) {
+            console.warn(`Invalid TLE for ${sat.name}`);
+            continue;
+        }
+
+        const tleLine1 = tleLines[1];
+        const tleLine2 = tleLines[2];
+
+        // --------------------------------------
+        // CREATE SATELLITE RECORD
+        // --------------------------------------
+
+        const satrec = satellite.twoline2satrec(
+            tleLine1,
+            tleLine2
+        );
+
+        const now = new Date();
+
+        const positionAndVelocity =
+            satellite.propagate(satrec, now);
+
+        const positionEci =
+            positionAndVelocity.position;
+
+        if (!positionEci) {
+            console.warn(`Propagation failed for ${sat.name}`);
+            continue;
+        }
+
+        const gmst = satellite.gstime(now);
+
+        const positionGd =
+            satellite.eciToGeodetic(positionEci, gmst);
+
+        const latitude =
+            satellite.radiansToDegrees(positionGd.latitude);
+
+        const longitude =
+            satellite.radiansToDegrees(positionGd.longitude);
+
+        const altitude = positionGd.height;
+
+        const positionEcf =
+            satellite.eciToEcf(positionEci, gmst);
+
+        const lookAngles =
+            satellite.ecfToLookAngles(
+                observerGd,
+                positionEcf
+            );
+
+        const azimuth =
+            satellite.radiansToDegrees(
+                lookAngles.azimuth
+            );
+
+        const elevation =
+            satellite.radiansToDegrees(
+                lookAngles.elevation
+            );
+
+        missionData.push({
+
+            name: sat.name,
+
+            id: sat.id,
+
+            lat: latitude,
+
+            lng: longitude,
+
+            alt: altitude,
+
+            azimuth: azimuth,
+
+            elevation: elevation
+
+        });
+
+    } catch (innerError) {
+
+        console.warn(
+            `Could not track satellite ${sat.id}:`,
+            innerError.message
+        );
+    }
         }
 
         // --------------------------------------
